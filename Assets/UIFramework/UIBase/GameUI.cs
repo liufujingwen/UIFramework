@@ -16,16 +16,17 @@ namespace UIFramework
 
             UIManager.Instance.SetUIParent(this.Transform, this.UIContext.UIData.UIType);
 
-            if (this.UIContext.UIData.Type != null)
+            if (this.UIContext.UIData.IsLuaUI)
             {
-                //创建Mono代理
-                this.uiProxy = System.Activator.CreateInstance(this.UIContext.UIData.Type) as UIProxy;
+                //创建lua代理
+                this.uiProxy = new UILuaProxy();
                 this.uiProxy.GameUI = this;
             }
             else
             {
-                //创建lua代理
-                this.uiProxy = new UILuaProxy();
+                //创建Mono代理
+                System.Type type = UIManager.Instance.GetType(UIContext.UIData.UIName);
+                this.uiProxy = System.Activator.CreateInstance(type) as UIProxy;
                 this.uiProxy.GameUI = this;
             }
         }
@@ -94,7 +95,7 @@ namespace UIFramework
             this.GameObject.SetActive(true);
             this.OnEnter(args);
             GameEventManager.Instance.RegistEvent(uiProxy);
-            
+
             //播放进场动画
             if (this.UIContext.UIData.HasAnimation)
             {

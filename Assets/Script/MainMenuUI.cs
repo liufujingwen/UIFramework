@@ -52,4 +52,8 @@ public class MainMenuUI : UIMonoProxy
     {
         Debug.Log("MainMenuUI OnExit");
     }
+
+    public override void OnNotifiy(string evt, params object[] args)
+    {
+    }
 }

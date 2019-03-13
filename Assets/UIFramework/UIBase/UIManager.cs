@@ -62,9 +62,9 @@ namespace UIFramework
         public bool HasAnimation = false;
 
         /// <summary>
-        /// 逻辑对应的类
+        /// 是否在Lua处理逻辑
         /// </summary>
-        public Type Type = null;
+        public bool IsLuaUI = false;
 
     }
 
@@ -91,6 +91,7 @@ namespace UIFramework
         private Dictionary<string, UIData> uiRegisterDic = new Dictionary<string, UIData>();//所有UI必须注册后才能创建
         private List<UIContex> uiList = new List<UIContex>();//所有加载的UI
         private Dictionary<string, UIContex> poolDic = new Dictionary<string, UIContex>();//保存所有不销毁的UI
+        private Dictionary<string, Type> uiTypeDic = new Dictionary<string, Type>();
 
         /// <summary>
         /// 显示堆栈，每个UIType对应一个栈
@@ -142,6 +143,7 @@ namespace UIFramework
         void InitTypes()
         {
             //获取所有Mono的UIType
+            uiTypeDic.Clear();
             Type[] types = DllHelper.GetMonoTypes();
             for (int i = 0; i < types.Length; i++)
             {
@@ -152,20 +154,13 @@ namespace UIFramework
                     UIAttribute uiAttribute = (UIAttribute)attr;
                     if (uiAttribute != null)
                     {
-                        UIData uiData = new UIData();
-                        uiData.UIName = uiAttribute.UIName;
-                        uiData.UIType = uiAttribute.UIType;
-                        uiData.UIResType = uiAttribute.UIResType;
-                        uiData.UICloseType = uiAttribute.UICloseType;
-                        uiData.HasAnimation = uiAttribute.HasAnimation;
-                        uiData.Type = type;
-                        uiRegisterDic.Add(uiData.UIName, uiData);
+                        uiTypeDic[uiAttribute.UIName] = type;
+                        Register(uiAttribute.UIName, uiAttribute.UIType, uiAttribute.UIResType, uiAttribute.UICloseType, uiAttribute.HasAnimation, false);
                     }
+
                 }
             }
         }
-
-
 
         /// <summary>
         /// 注册UI
@@ -175,7 +170,7 @@ namespace UIFramework
         /// <param name="uiResType">UI加载方式</param>
         /// <param name="uiCloseType">UI关闭方式</param>
         /// <param name="hasAnimation">UI是否有动画</param>
-        public void Register(string uiName, UIType uiType, UIResType uiResType, UICloseType uiCloseType, bool hasAnimation)
+        public void Register(string uiName, UIType uiType, UIResType uiResType, UICloseType uiCloseType, bool hasAnimation, bool isLuaUI)
         {
             UIData uiData = new UIData();
             uiData.UIName = uiName;
@@ -183,6 +178,7 @@ namespace UIFramework
             uiData.UIResType = uiResType;
             uiData.UICloseType = uiCloseType;
             uiData.HasAnimation = hasAnimation;
+            uiData.IsLuaUI = isLuaUI;
             uiRegisterDic.Add(uiName, uiData);
         }
 
@@ -410,6 +406,18 @@ namespace UIFramework
             ShowStackManager tempShowStack = null;
             if (showDic.TryGetValue(uiType, out tempShowStack))
                 tempShowStack.Pop();
+        }
+
+        /// <summary>
+        /// 获取在C#端对应的脚本Type
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        /// <returns></returns>
+        public Type GetType(string uiName)
+        {
+            Type type = null;
+            uiTypeDic.TryGetValue(uiName, out type);
+            return type;
         }
 
         /// <summary>
