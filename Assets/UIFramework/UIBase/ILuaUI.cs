@@ -9,15 +9,15 @@ namespace UIFramework
 {
     public interface ILuaUI
     {
-        void OnInit();
+        void OnAwake();
 
-        void OnEnter(params object[] args);
+        void OnStart(params object[] args);
 
-        void OnPause();
+        void OnEnable();
 
-        void OnResume();
+        void OnDisable();
 
-        void OnExit();
+        void OnDestroy();
 
         void OnNotifiy(string evt, params object[] args);
     }

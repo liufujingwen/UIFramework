@@ -33,7 +33,7 @@ function LuaUI:RegisterListener(button, handle, clear)
 
     clear = clear and true or false
     self.UIProxy:RegisterListener(button, function()
-        if (handle) then
+        if handle then
             handle(self);
         end
     end, clear)

@@ -9,23 +9,23 @@ namespace UIFramework
 {
     public class UIMonoProxy : UIProxy
     {
-        public override void OnInit()
+        public override void OnAwake()
         {
         }
 
-        public override void OnEnter(params object[] args)
+        public override void OnStart(params object[] args)
         {
         }
 
-        public override void OnPause()
+        public override void OnEnable()
         {
         }
 
-        public override void OnResume()
+        public override void OnDisable()
         {
         }
 
-        public override void OnExit()
+        public override void OnDestroy()
         {
         }
 

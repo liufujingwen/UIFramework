@@ -198,8 +198,8 @@ namespace UIFramework
                 UIManager.Instance.SetUIParent(tempGameUI.Transform, tempGameUI.UIContext.UIData.UIType);
 
                 //保证所有UI只执行一次Init
-                if (!tempGameUI.InitState)
-                    tempGameUI.Init();
+                if (!tempGameUI.AwakeState)
+                    tempGameUI.Awake();
             }
         }
 
@@ -293,8 +293,8 @@ namespace UIFramework
                     if (tempUIContext.UIData.UICloseType == UICloseType.Destroy)
                     {
                         tempUIContext.TCS = null;
-                        if (tempUIContext.UI != null && tempUIContext.UI.GameObject)
-                            tempUIContext.UI.ExitImmediate();
+                        if (tempUIContext.UI != null && tempUIContext.UI.UIState != GameUI.UIStateType.Destroy)
+                            tempUIContext.UI.Destroy();
                     }
                     else
                     {

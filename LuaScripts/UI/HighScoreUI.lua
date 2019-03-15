@@ -6,9 +6,9 @@ function HighScoreUI:Ctor(name, context)
 
 end
 
-function HighScoreUI:OnInit()
+function HighScoreUI:OnAwake()
 
-    Debug.Log("HighScoreUI OnInit" .. self.Name)
+    Debug.Log("HighScoreUI OnAwake" .. self.Name)
     local BackButton = self.GameObject:FindGameObject("BackButton")
     self.super.RegisterListener(self, "BackButton", self.OnClickExitBtn)
     self.super.RegisterListener(self, BackButton, self.OnClickExitBtn)
@@ -19,20 +19,20 @@ function HighScoreUI:OnClickExitBtn(eventData)
     UIManager.Instance:Pop();
 end
 
-function HighScoreUI:OnEnter(args)
-    Debug.Log("HighScoreUI OnEnter");
+function HighScoreUI:OnStart(args)
+    Debug.Log("HighScoreUI OnStart");
 end
 
-function HighScoreUI:OnPause()
-    Debug.Log("HighScoreUI OnPause");
+function HighScoreUI:OnEnable()
+    Debug.Log("HighScoreUI OnEnable");
 end
 
-function HighScoreUI:OnResume()
-    Debug.Log("HighScoreUI OnResume");
+function HighScoreUI:OnDisable()
+    Debug.Log("HighScoreUI OnDisable");
 end
 
-function HighScoreUI:OnExit()
-    Debug.Log("HighScoreUI OnExit");
+function HighScoreUI:OnDestroy()
+    Debug.Log("HighScoreUI OnDestroy");
 end
 
 function HighScoreUI:OnNotifiy(evt, ...)

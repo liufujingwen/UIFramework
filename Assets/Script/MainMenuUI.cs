@@ -10,7 +10,7 @@ using UnityEngine.EventSystems;
 [UIAttribute("MainMenuUI", UIType.Normal, UIResType.Resorces, UICloseType.Destroy, true)]
 public class MainMenuUI : UIMonoProxy
 {
-    public override void OnInit()
+    public override void OnAwake()
     {
         Debug.Log("MainMenuUI OnInit");
         RegisterListener("HighScoreButton", OnClickHighScoresBtn);
@@ -33,24 +33,24 @@ public class MainMenuUI : UIMonoProxy
         UIManager.Instance.Pop();
     }
 
-    public override void OnEnter(params object[] args)
+    public override void OnStart(params object[] args)
     {
-        Debug.Log("MainMenuUI OnEnter");
+        Debug.Log("MainMenuUI OnStart");
     }
 
-    public override void OnPause()
+    public override void OnEnable()
     {
-        Debug.Log("MainMenuUI OnPause");
+        Debug.Log("MainMenuUI OnEnable");
     }
 
-    public override void OnResume()
+    public override void OnDisable()
     {
-        Debug.Log("MainMenuUI OnResume");
+        Debug.Log("MainMenuUI OnDisable");
     }
 
-    public override void OnExit()
+    public override void OnDestroy()
     {
-        Debug.Log("MainMenuUI OnExit");
+        Debug.Log("MainMenuUI OnDestroy");
     }
 
     public override void OnNotifiy(string evt, params object[] args)

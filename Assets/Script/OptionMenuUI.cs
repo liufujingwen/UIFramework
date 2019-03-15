@@ -10,9 +10,9 @@ using UnityEngine.EventSystems;
 [UIAttribute("OptionMenuUI", UIType.Normal, UIResType.Resorces, UICloseType.Destroy, true)]
 public class OptionMenuUI : UIMonoProxy
 {
-    public override void OnInit()
+    public override void OnAwake()
     {
-        Debug.Log("OptionMenuUI OnInit");
+        Debug.Log("OptionMenuUI OnAwake");
         RegisterListener("BackButton", OnClickExitBtn);
     }
 
@@ -21,23 +21,23 @@ public class OptionMenuUI : UIMonoProxy
         UIManager.Instance.Pop();
     }
 
-    public override void OnEnter(params object[] args)
+    public override void OnStart(params object[] args)
     {
-        Debug.Log("OptionMenuUI OnEnter");
+        Debug.Log("OptionMenuUI OnStart");
     }
 
-    public override void OnPause()
+    public override void OnEnable()
     {
-        Debug.Log("OptionMenuUI OnPause");
+        Debug.Log("OptionMenuUI OnEnable");
     }
 
-    public override void OnResume()
+    public override void OnDisable()
     {
-        Debug.Log("OptionMenuUI OnResume");
+        Debug.Log("OptionMenuUI OnDisable");
     }
 
-    public override void OnExit()
+    public override void OnDestroy()
     {
-        Debug.Log("OptionMenuUI OnExit");
+        Debug.Log("OptionMenuUI OnDestroy");
     }
 }

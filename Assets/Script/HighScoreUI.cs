@@ -10,7 +10,7 @@ using UnityEngine.EventSystems;
 //[UIAttribute("HighScoreUI", UIType.Normal, UIResType.Resorces, UICloseType.Hide, true)]
 public class HighScoreUI : UIMonoProxy
 {
-    public override void OnInit()
+    public override void OnAwake()
     {
         Debug.Log("HighScoreUI OnInit");
         RegisterListener("BackButton", OnClickExitBtn);
@@ -21,23 +21,23 @@ public class HighScoreUI : UIMonoProxy
         UIManager.Instance.Pop();
     }
 
-    public override void OnEnter(params object[] args)
+    public override void OnStart(params object[] args)
     {
-        Debug.Log("HighScoreUI OnEnter");
+        Debug.Log("HighScoreUI OnStart");
     }
 
-    public override void OnPause()
+    public override void OnEnable()
     {
-        Debug.Log("HighScoreUI OnPause");
+        Debug.Log("HighScoreUI OnEnable");
     }
 
-    public override void OnResume()
+    public override void OnDisable()
     {
-        Debug.Log("HighScoreUI OnResume");
+        Debug.Log("HighScoreUI OnDisable");
     }
 
-    public override void OnExit()
+    public override void OnDestroy()
     {
-        Debug.Log("HighScoreUI OnExit");
+        Debug.Log("HighScoreUI OnDestroy");
     }
 }

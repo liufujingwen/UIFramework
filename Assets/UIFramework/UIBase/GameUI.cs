@@ -7,7 +7,7 @@ namespace UIFramework
 {
     public class GameUI
     {
-        public void SetContext(GameObject gameObject,UIContex uiContext)
+        public void SetContext(GameObject gameObject, UIContex uiContext)
         {
             this.UIContext = uiContext;
             this.GameObject = gameObject;
@@ -32,40 +32,42 @@ namespace UIFramework
 
         public enum AnimationStateType
         {
-            Empty,
-            Enter,
-            Pause,
-            Resume,
-            Exit,
+            None,
+            Start,
+            Enable,
+            Disable,
+            Destroy,
         }
 
         public enum UIStateType
         {
             None,
-            Init,
-            Show,
-            Hide,
+            Awake,
+            Start,
+            Enable,
+            Disable,
+            Destroy,
         }
 
         public UIContex UIContext = null;
         public GameObject GameObject = null;
         public Transform Transform = null;
         public UIStateType UIState = UIStateType.None;
-        public AnimationStateType AnimationState = AnimationStateType.Empty;
-        public bool InitState = false;
+        public AnimationStateType AnimationState = AnimationStateType.None;
+        public bool AwakeState = false;
 
         private Dictionary<Canvas, int> canvasDic = null;
         private Animator animator = null;
         private UIProxy uiProxy = null;
-        private TaskCompletionSource<bool> enterTask = null;
-        private TaskCompletionSource<bool> pauseTask = null;
-        private TaskCompletionSource<bool> resumeTask = null;
-        private TaskCompletionSource<bool> exitTask = null;
+        private TaskCompletionSource<bool> startTask = null;
+        private TaskCompletionSource<bool> disableTask = null;
+        private TaskCompletionSource<bool> enableTask = null;
+        private TaskCompletionSource<bool> destroyTask = null;
 
-        public void Init()
+        public void Awake()
         {
-            this.UIState = GameUI.UIStateType.Init;
-            InitState = true;
+            this.UIState = GameUI.UIStateType.Awake;
+            AwakeState = true;
 
             //记录所有Canvas初始化的sortingOrder
             Canvas[] tempCanvases = this.GameObject.GetComponentsInChildren<Canvas>(true);
@@ -78,138 +80,177 @@ namespace UIFramework
 
             if (this.UIContext.UIData.HasAnimation)
                 this.animator = this.GameObject.GetComponent<Animator>();
-            this.OnInit();
+            this.OnAwake();
             this.GameObject.SetActive(false);
         }
 
-        public void OnInit()
+        public void OnAwake()
         {
-            this.uiProxy?.OnInit();
+            this.uiProxy?.OnAwake();
         }
 
-        public async Task EnterAsync(params object[] args)
+        #region Start
+
+        public async Task StartAsync(params object[] args)
         {
-            this.AnimationState = AnimationStateType.Enter;
-            this.UIState = GameUI.UIStateType.Show;
-            this.GameObject.SetActive(true);
-            this.OnEnter(args);
-            GameEventManager.Instance.RegistEvent(uiProxy);
+            Start(args);
+            Enable();
 
             //播放进场动画
             if (this.UIContext.UIData.HasAnimation)
             {
+                this.AnimationState = AnimationStateType.Start;
                 this.animator.enabled = true;
-                this.animator.Play("Enter");
+                this.animator.Play("Enable");
                 this.animator.Update(0);
-                await Enter();
-                enterTask = null;
+                await GetStartTask();
+                startTask = null;
             }
         }
 
-        public Task Enter()
+        public void Start(params object[] args)
         {
-            this.enterTask = new TaskCompletionSource<bool>();
-            return this.enterTask.Task;
-        }
-
-        public void OnEnter(params object[] args)
-        {
-            this.uiProxy?.OnEnter(args);
-        }
-
-        public async Task PauseAsync()
-        {
-            this.AnimationState = AnimationStateType.Pause;
-            this.UIState = GameUI.UIStateType.Hide;
-
-            //播放暂停动画
-            if (this.UIContext.UIData.HasAnimation)
-            {
-                this.animator.enabled = true;
-                this.animator.Play("Pause");
-                this.animator.Update(0);
-                await Pause();
-                this.pauseTask = null;
-            }
-
-            GameEventManager.Instance.RemoveEvent(uiProxy);
-            this.GameObject.SetActive(false);
-        }
-
-        public Task Pause()
-        {
-            this.pauseTask = new TaskCompletionSource<bool>();
-            return pauseTask.Task;
-        }
-
-        public void OnPause()
-        {
-            this.uiProxy?.OnPause();
-        }
-
-        public async Task ResumeAsync()
-        {
-            this.AnimationState = AnimationStateType.Resume;
-            this.UIState = GameUI.UIStateType.Show;
+            this.UIState = GameUI.UIStateType.Start;
             this.GameObject.SetActive(true);
-            this.OnResume();
-            GameEventManager.Instance.RegistEvent(uiProxy);
+            this.OnStart(args);
+        }
 
+        public Task GetStartTask()
+        {
+            this.startTask = new TaskCompletionSource<bool>();
+            return this.startTask.Task;
+        }
+
+        public void OnStart(params object[] args)
+        {
+            this.uiProxy?.OnStart(args);
+        }
+
+        #endregion
+
+        #region Enable
+
+        public async Task EnableAsync()
+        {
+            Enable();
             //播放Resume动画
             if (this.UIContext.UIData.HasAnimation)
             {
+                this.AnimationState = AnimationStateType.Disable;
                 this.animator.enabled = true;
-                this.animator.Play("Resume");
+                this.animator.Play("Enable");
                 this.animator.Update(0);
-                await this.Resume();
-                resumeTask = null;
+                await this.GetEnableTask();
+                enableTask = null;
             }
         }
 
-        public Task Resume()
+        public void Enable()
         {
-            this.resumeTask = new TaskCompletionSource<bool>();
-            return this.resumeTask.Task;
+            this.UIState = GameUI.UIStateType.Enable;
+            this.GameObject.SetActive(true);
+            this.OnEnable();
+            GameEventManager.Instance.RegistEvent(uiProxy);
         }
 
-        public void OnResume()
+        public Task GetEnableTask()
         {
-            this.uiProxy?.OnResume();
+            this.enableTask = new TaskCompletionSource<bool>();
+            return this.enableTask.Task;
         }
 
-        public async Task ExitAsync()
+        public void OnEnable()
         {
-            this.AnimationState = AnimationStateType.Exit;
+            this.uiProxy?.OnEnable();
+        }
+
+        #endregion
+
+        #region Disable
+
+        public async Task DisableAsync()
+        {
+            //播放暂停动画
+            if (this.UIContext.UIData.HasAnimation)
+            {
+                this.AnimationState = AnimationStateType.Enable;
+                this.animator.enabled = true;
+                this.animator.Play("Disable");
+                this.animator.Update(0);
+                await GetDisableTask();
+                this.disableTask = null;
+            }
+            Disable();
+        }
+
+        public void Disable()
+        {
+            this.UIState = GameUI.UIStateType.Disable;
+            GameEventManager.Instance.RemoveEvent(uiProxy);
+            OnDisable();
+            this.GameObject.SetActive(false);
+        }
+
+        public Task GetDisableTask()
+        {
+            this.disableTask = new TaskCompletionSource<bool>();
+            return disableTask.Task;
+        }
+
+        public void OnDisable()
+        {
+            this.uiProxy?.OnDisable();
+        }
+
+        #endregion
+
+        #region Desrtory
+
+        public async Task DestroyAsync()
+        {
+            this.AnimationState = AnimationStateType.Destroy;
 
             //播放退出动画
             if (this.UIContext.UIData.HasAnimation)
             {
                 this.animator.enabled = true;
-                this.animator.Play("Exit");
+                this.animator.Play("Disable");
                 this.animator.Update(0);
-                await this.Exit();
-                exitTask = null;
+                await this.GetDestroyTask();
+                destroyTask = null;
             }
 
-            this.OnExit();
-            GameEventManager.Instance.RemoveEvent(uiProxy);
-            this.UIState = GameUI.UIStateType.Hide;
-            this.GameObject.SetActive(false);
-
-            if (this.UIContext.UIData.UICloseType == UICloseType.Destroy)
-                Destroy();
+            Destroy();
         }
 
-        public Task Exit()
+        public void Destroy()
         {
-            this.exitTask = new TaskCompletionSource<bool>();
-            return this.exitTask.Task;
+            Disable();
+            this.OnDestroy();
+            GameObject.Destroy(this.GameObject);
+            this.GameObject = null;
+            this.Transform = null;
+            this.UIState = GameUI.UIStateType.Destroy;
+            this.AnimationState = GameUI.AnimationStateType.Destroy;
+            AwakeState = false;
+            this.startTask = null;
+            this.disableTask = null;
+            this.enableTask = null;
+            this.destroyTask = null;
         }
 
-        public void OnExit()
+        public Task GetDestroyTask()
         {
-            this.uiProxy?.OnExit();
+            this.destroyTask = new TaskCompletionSource<bool>();
+            return this.destroyTask.Task;
         }
+
+        public void OnDestroy()
+        {
+            this.uiProxy?.OnDestroy();
+        }
+
+        #endregion
 
         /// <summary>
         /// 设置界面层级
@@ -227,49 +268,30 @@ namespace UIFramework
         /// <summary>
         /// UI直接关闭，不会播放退场动画
         /// </summary>
-        public void ExitImmediate()
-        {
-            OnExit();
-            GameEventManager.Instance.RemoveEvent(uiProxy);
-            this.UIState = GameUI.UIStateType.Hide;
-            this.GameObject.SetActive(false);
+        //public void ExitImmediate()
+        //{
+        //    OnDestroy();
+        //    GameEventManager.Instance.RemoveEvent(uiProxy);
+        //    this.UIState = GameUI.UIStateType.Disable;
+        //    this.GameObject.SetActive(false);
+        //}
 
-            if (this.UIContext.UIData.UICloseType == UICloseType.Destroy)
-                Destroy();
-        }
-
-        /// <summary>
-        /// 销毁UI
-        /// </summary>
-        public void Destroy()
-        {
-            GameObject.Destroy(this.GameObject);
-            this.GameObject = null;
-            this.Transform = null;
-            this.AnimationState = GameUI.AnimationStateType.Empty;
-
-            this.enterTask = null;
-            this.pauseTask = null;
-            this.resumeTask = null;
-            this.exitTask = null;
-            InitState = false;
-        }
 
         public void OnNotifyAnimationState()
         {
             switch (AnimationState)
             {
-                case AnimationStateType.Enter:
-                    this.enterTask.SetResult(true);
+                case AnimationStateType.Start:
+                    this.startTask.SetResult(true);
                     break;
-                case AnimationStateType.Pause:
-                    this.pauseTask.SetResult(true);
+                case AnimationStateType.Enable:
+                    this.disableTask.SetResult(true);
                     break;
-                case AnimationStateType.Resume:
-                    this.resumeTask.SetResult(true);
+                case AnimationStateType.Disable:
+                    this.enableTask.SetResult(true);
                     break;
-                case AnimationStateType.Exit:
-                    this.exitTask.SetResult(true);
+                case AnimationStateType.Destroy:
+                    this.destroyTask.SetResult(true);
                     break;
             }
         }

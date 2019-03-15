@@ -24,29 +24,29 @@ namespace UIFramework
                 luaUI = NewFunc(this.UIContext.UIData.UIName, this);
         }
 
-        public override void OnInit()
+        public override void OnAwake()
         {
-            luaUI?.OnInit();
+            luaUI?.OnAwake();
         }
 
-        public override void OnEnter(params object[] args)
+        public override void OnStart(params object[] args)
         {
-            luaUI?.OnEnter(args);
+            luaUI?.OnStart(args);
         }
 
-        public override void OnPause()
+        public override void OnEnable()
         {
-            luaUI?.OnPause();
+            luaUI?.OnEnable();
         }
 
-        public override void OnResume()
+        public override void OnDisable()
         {
-            luaUI?.OnResume();
+            luaUI?.OnDisable();
         }
 
-        public override void OnExit()
+        public override void OnDestroy()
         {
-            luaUI?.OnExit();
+            luaUI?.OnDestroy();
             RemoveAction?.Invoke(this.UIContext.UIData.UIName);
             luaUI = null;
         }

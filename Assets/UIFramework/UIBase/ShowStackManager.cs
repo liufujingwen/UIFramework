@@ -79,7 +79,7 @@ namespace UIFramework
                 GameUI curUI = UIManager.Instance.FindUI(curUIName);
 
                 if (curUI != null && curUI.UIState > GameUI.UIStateType.None)
-                    await curUI.PauseAsync();
+                    await curUI.DisableAsync();
             }
 
             showStack.Push(uiName);
@@ -90,7 +90,7 @@ namespace UIFramework
                 int order = (showStack.Count - 1) * ORDER_PER_PANEL + MinOrder;
                 newGameUI.SetCavansOrder(order);
                 //播放UI入场动画
-                await newGameUI.EnterAsync(args);
+                await newGameUI.StartAsync(args);
             }
 
             //释放mask
@@ -126,9 +126,9 @@ namespace UIFramework
                 if (curUI != null)
                 {
                     if (curUI.UIContext.UIData.UICloseType == UICloseType.Destroy)
-                        await curUI.ExitAsync();
+                        await curUI.DestroyAsync();
                     else
-                        await curUI.PauseAsync();
+                        await curUI.DisableAsync();
 
                     UIManager.Instance.RemoveUI(curUIName);
                 }
@@ -142,7 +142,7 @@ namespace UIFramework
                 if (preUI != null)
                 {
                     if (preUI.UIState > GameUI.UIStateType.None)
-                        await preUI.ResumeAsync();
+                        await preUI.EnableAsync();
                 }
             }
 

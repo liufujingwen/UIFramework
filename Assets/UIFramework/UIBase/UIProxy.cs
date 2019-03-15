@@ -18,15 +18,15 @@ namespace UIFramework
 
         public UIContex UIContext;
 
-        public abstract void OnInit();
+        public abstract void OnAwake();
 
-        public abstract void OnEnter(params object[] args);
+        public abstract void OnStart(params object[] args);
 
-        public abstract void OnPause();
+        public abstract void OnEnable();
 
-        public abstract void OnResume();
+        public abstract void OnDisable();
 
-        public abstract void OnExit();
+        public abstract void OnDestroy();
 
         public GameObject FindGameObject(string name)
         {
