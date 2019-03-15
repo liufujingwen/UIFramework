@@ -18,7 +18,7 @@ namespace UIFramework
                 NewFunc = Main.Instance.LuaEnv.Global.GetInPath<Func<string, UILuaProxy, ILuaUI>>("LuaUIManager.New");
 
             if (RemoveAction == null)
-                RemoveAction = Main.Instance.LuaEnv.Global.GetInPath<Action<string>>("XUiManager.RemoveClassType");
+                RemoveAction = Main.Instance.LuaEnv.Global.GetInPath<Action<string>>("LuaUIManager.RemoveClassType");
 
             if (NewFunc != null)
                 luaUI = NewFunc(this.UIContext.UIData.UIName, this);
@@ -47,7 +47,8 @@ namespace UIFramework
         public override void OnExit()
         {
             luaUI?.OnExit();
-            //removeAction?.Invoke(this.UIContext.UIData.UIName);
+            RemoveAction?.Invoke(this.UIContext.UIData.UIName);
+            luaUI = null;
         }
 
         public Component FindComponent(string name, Type type)

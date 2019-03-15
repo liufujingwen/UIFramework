@@ -70,8 +70,6 @@ namespace UIFramework
             }
         }
 
-        
-
         public abstract void OnNotifiy(string evt, params object[] args);
     }
 }

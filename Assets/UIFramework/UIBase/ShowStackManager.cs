@@ -125,7 +125,11 @@ namespace UIFramework
                 GameUI curUI = UIManager.Instance.FindUI(curUIName);
                 if (curUI != null)
                 {
-                    await curUI.ExitAsync();
+                    if (curUI.UIContext.UIData.UICloseType == UICloseType.Destroy)
+                        await curUI.ExitAsync();
+                    else
+                        await curUI.PauseAsync();
+
                     UIManager.Instance.RemoveUI(curUIName);
                 }
             }
