@@ -12,7 +12,7 @@ public class HighScoreUI : UIMonoProxy
 {
     public override void OnAwake()
     {
-        Debug.Log("HighScoreUI OnInit");
+        Debug.Log("HighScoreUI OnAwake");
         RegisterListener("BackButton", OnClickExitBtn);
     }
 
