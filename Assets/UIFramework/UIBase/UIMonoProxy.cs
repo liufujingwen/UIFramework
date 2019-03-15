@@ -31,9 +31,9 @@ namespace UIFramework
 
         public T FindComponent<T>(string name) where T : Component
         {
-            if (GameUI == null || !GameUI.GameObject)
+            if (UIContext == null || UIContext.UI == null || !UIContext.UI.GameObject)
                 return null;
-            return GameUI.GameObject.FindComponent<T>(name);
+            return UIContext.UI.GameObject.FindComponent<T>(name);
         }
 
         public override void OnNotifiy(string evt, params object[] args)

@@ -11,7 +11,12 @@ namespace UIFramework
 {
     public abstract class UIProxy : IBaseEventListener
     {
-        public GameUI GameUI;
+        public void SetContext(UIContex uiContext)
+        {
+            this.UIContext = uiContext;
+        }
+
+        public UIContex UIContext;
 
         public abstract void OnInit();
 
@@ -25,22 +30,16 @@ namespace UIFramework
 
         public GameObject FindGameObject(string name)
         {
-            if (GameUI == null || !GameUI.Transform)
+            if (UIContext == null || UIContext.UI == null || !UIContext.UI.Transform)
                 return null;
-            return GameUI.Transform.FindGameObject(name);
+            return UIContext.UI.Transform.FindGameObject(name);
         }
 
-        public void RegisterListener(GameObject go, VoidDelegate handle, bool clear = true)
+        public Transform FindTransform(string name)
         {
-            if (go)
-            {
-                UGUIEventListener listener = UGUIEventListener.Get(go);
-                if (listener != null)
-                {
-                    if (clear) listener.onClick = null;
-                    listener.onClick += handle;
-                }
-            }
+            if (UIContext == null || UIContext.UI == null || !UIContext.UI.Transform)
+                return null;
+            return UIContext.UI.Transform.FindTransform(name);
         }
 
         public void RegisterListener(string name, VoidDelegate handle, bool clear = true)
@@ -56,6 +55,22 @@ namespace UIFramework
                 }
             }
         }
+
+
+        public void RegisterListener(GameObject go, VoidDelegate handle, bool clear = true)
+        {
+            if (go)
+            {
+                UGUIEventListener listener = UGUIEventListener.Get(go);
+                if (listener != null)
+                {
+                    if (clear) listener.onClick = null;
+                    listener.onClick += handle;
+                }
+            }
+        }
+
+        
 
         public abstract void OnNotifiy(string evt, params object[] args);
     }

@@ -7,27 +7,26 @@ namespace UIFramework
 {
     public class GameUI
     {
-        public GameUI(GameObject gameObject, UIContex uiContext)
+        public void SetContext(GameObject gameObject,UIContex uiContext)
         {
+            this.UIContext = uiContext;
             this.GameObject = gameObject;
             this.GameObject.name = uiContext.UIData.UIName;
-            this.Transform = gameObject.transform;
-            this.UIContext = uiContext;
+            this.Transform = this.GameObject.transform;
 
             UIManager.Instance.SetUIParent(this.Transform, this.UIContext.UIData.UIType);
 
             if (this.UIContext.UIData.IsLuaUI)
             {
                 //创建lua代理
-                this.uiProxy = new UILuaProxy();
-                this.uiProxy.GameUI = this;
+                this.uiProxy = new UILuaProxy(this.UIContext);
             }
             else
             {
                 //创建Mono代理
                 System.Type type = UIManager.Instance.GetType(UIContext.UIData.UIName);
                 this.uiProxy = System.Activator.CreateInstance(type) as UIProxy;
-                this.uiProxy.GameUI = this;
+                this.uiProxy.SetContext(this.UIContext);
             }
         }
 
@@ -105,7 +104,6 @@ namespace UIFramework
                 await Enter();
                 enterTask = null;
             }
-
         }
 
         public Task Enter()

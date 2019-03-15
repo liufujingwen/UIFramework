@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
+using XLua;
 
 namespace UIFramework
 {
@@ -131,7 +132,7 @@ namespace UIFramework
             }
 
             uiCamera = uiRoot.FindComponent<Camera>("Camera");
-            poolCanvas = uiRoot.FindTransform("PoolCanvas");
+            poolCanvas = uiRoot.transform.FindTransform("PoolCanvas");
             foreach (UIType uiType in Enum.GetValues(typeof(UIType)))
             {
                 Canvas tempCanvas = uiRoot.FindComponent<Canvas>($"{uiType}Canvas");
@@ -172,6 +173,7 @@ namespace UIFramework
         /// <param name="hasAnimation">UI是否有动画</param>
         public void Register(string uiName, UIType uiType, UIResType uiResType, UICloseType uiCloseType, bool hasAnimation, bool isLuaUI)
         {
+            //Debug.Log($"uiName:{uiName} uiType:{uiType} uiResType:{uiResType} uiCloseType:{uiCloseType} hasAnimation:{hasAnimation} isLuaUI:{isLuaUI}");
             UIData uiData = new UIData();
             uiData.UIName = uiName;
             uiData.UIType = uiType;
@@ -234,9 +236,10 @@ namespace UIFramework
                     tempUIContext.TCS = new TaskCompletionSource<bool>();
                     uiList.Add(tempUIContext);
 
-                    GameRoot.instance.StartCoroutine(LoadAsset(GetAssetUrl(uiName), go =>
+                    Main.Instance.StartCoroutine(LoadAsset(GetAssetUrl(uiName), go =>
                     {
-                        tempUIContext.UI = new GameUI(go, tempUIContext);
+                        tempUIContext.UI = new GameUI();
+                        tempUIContext.UI.SetContext(go, tempUIContext);
 
                         if (tempUIContext.TCS != null)
                             tempUIContext.TCS.SetResult(true);

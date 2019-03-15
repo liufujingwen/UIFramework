@@ -3,19 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using XLua;
 
 namespace UIFramework
 {
-    //public interface ILuaUI
-    //{
-    //    void OnInit();
+    public interface ILuaUI
+    {
+        void OnInit();
 
-    //    void OnEnter(params object[] args);
+        void OnEnter(params object[] args);
 
-    //    void OnPause();
+        void OnPause();
 
-    //    void OnResume();
+        void OnResume();
 
-    //    void OnExit();
-    //}
+        void OnExit();
+
+        void OnNotifiy(string evt, params object[] args);
+    }
 }

@@ -7,7 +7,7 @@ using System;
 using UIFramework;
 using UnityEngine.EventSystems;
 
-[UIAttribute("HighScoreUI", UIType.Normal, UIResType.Resorces, UICloseType.Hide, true)]
+//[UIAttribute("HighScoreUI", UIType.Normal, UIResType.Resorces, UICloseType.Hide, true)]
 public class HighScoreUI : UIMonoProxy
 {
     public override void OnInit()
