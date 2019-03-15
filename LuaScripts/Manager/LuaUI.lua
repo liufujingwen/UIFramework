@@ -10,19 +10,19 @@ function LuaUI:Ctor(name, uiProxy)
 
 end
 
-function LuaUI:OnInit()
+function LuaUI:OnAwake()
 end
 
-function LuaUI:OnEnter(...)
+function LuaUI:OnStart(...)
 end
 
-function LuaUI:OnPause()
+function LuaUI:OnEnable()
 end
 
-function LuaUI:OnResume()
+function LuaUI:OnDisable()
 end
 
-function LuaUI:OnExit()
+function LuaUI:OnDestroy()
 end
 
 function LuaUI:OnNotifiy(evt, ...)
