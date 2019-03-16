@@ -76,14 +76,16 @@ namespace UIFramework
             if (showStack.Count != 0)
             {
                 string curUIName = showStack.Peek();
-                GameUI curUI = UIManager.Instance.FindUI(curUIName);
+                GameUI curUI = UIManager.Instance.FindUI(curUIName) as GameUI;
 
-                if (curUI != null && curUI.UIState > GameUI.UIStateType.None)
+                if (curUI != null && curUI.UIState > UIStateType.None)
+                {
                     await curUI.DisableAsync();
+                }
             }
 
             showStack.Push(uiName);
-            GameUI newGameUI = UIManager.Instance.FindUI(uiName);
+            GameUI newGameUI = UIManager.Instance.FindUI(uiName) as GameUI;
             if (newGameUI != null)
             {
                 //先设置UI层级
@@ -122,14 +124,13 @@ namespace UIFramework
             if (showStack.Count != 0)
             {
                 string curUIName = showStack.Pop();
-                GameUI curUI = UIManager.Instance.FindUI(curUIName);
+                GameUI curUI = UIManager.Instance.FindUI(curUIName) as GameUI;
                 if (curUI != null)
                 {
                     if (curUI.UIContext.UIData.UICloseType == UICloseType.Destroy)
                         await curUI.DestroyAsync();
                     else
                         await curUI.DisableAsync();
-
                     UIManager.Instance.RemoveUI(curUIName);
                 }
             }
@@ -138,10 +139,10 @@ namespace UIFramework
             if (showStack.Count != 0)
             {
                 string preUIName = showStack.Peek();
-                GameUI preUI = UIManager.Instance.FindUI(preUIName);
+                GameUI preUI = UIManager.Instance.FindUI(preUIName) as GameUI;
                 if (preUI != null)
                 {
-                    if (preUI.UIState > GameUI.UIStateType.None)
+                    if (preUI.UIState > UIStateType.None)
                         await preUI.EnableAsync();
                 }
             }

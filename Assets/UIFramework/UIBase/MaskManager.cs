@@ -24,10 +24,10 @@ namespace UIFramework
         {
             MaskCount += visible ? 1 : -1;
 
-            if (MaskCount > 0)
-                UIManager.Instance.Push("MaskUI");
-            else
-                UIManager.Instance.Pop(UIType.Top);
+            //if (MaskCount > 0)
+            //    UIManager.Instance.Push("MaskUI");
+            //else
+            //    UIManager.Instance.Pop(UIType.Top);
         }
 
         public void Clear()

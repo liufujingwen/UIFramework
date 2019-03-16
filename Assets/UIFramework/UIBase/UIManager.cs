@@ -7,89 +7,16 @@ using XLua;
 
 namespace UIFramework
 {
-    public enum UIType
-    {
-        Normal = 1,
-        Dialog = 2,
-        Guide = 4,
-        Tips = 8,
-        TopMask = 16,
-        Top = 32,
-    }
-
     /// <summary>
-    /// UI加载方式
+    /// UI管理器
     /// </summary>
-    public enum UIResType
-    {
-        Resorces,//使用Resource.Load()
-        Bundle,//使用AssetBundle
-    }
-
-    /// <summary>
-    /// UI关闭方式
-    /// </summary>
-    public enum UICloseType
-    {
-        Hide,//隐藏不销毁，放回poolCanvas
-        Destroy,//直接销毁
-    }
-
-    public class UIData
-    {
-        /// <summary>
-        /// UI名字
-        /// </summary>
-        public string UIName = null;
-
-        /// <summary>
-        /// UI类型
-        /// </summary>
-        public UIType UIType = UIType.Normal;
-
-        /// <summary>
-        /// UI加载方式
-        /// </summary>
-        public UIResType UIResType = UIResType.Resorces;
-
-        /// <summary>
-        /// UI关闭方式
-        /// </summary>
-        public UICloseType UICloseType = UICloseType.Destroy;
-
-        /// <summary>
-        /// UI是否有动画
-        /// </summary>
-        public bool HasAnimation = false;
-
-        /// <summary>
-        /// 是否在Lua处理逻辑
-        /// </summary>
-        public bool IsLuaUI = false;
-
-    }
-
-    public class UIContex
-    {
-        /// <summary>
-        /// UI数据
-        /// </summary>
-        public UIData UIData = null;
-
-        /// <summary>
-        /// UI资源加载状态
-        /// </summary>
-        public TaskCompletionSource<bool> TCS = null;
-
-        /// <summary>
-        /// UI
-        /// </summary>
-        public GameUI UI = null;
-    }
-
     public class UIManager : Singleton<UIManager>
     {
-        private Dictionary<string, UIData> uiRegisterDic = new Dictionary<string, UIData>();//所有UI必须注册后才能创建
+        //所有UI必须注册后才能创建
+        private Dictionary<string, UIData> uiRegisterDic = new Dictionary<string, UIData>();
+        //保存子UI信息
+        private Dictionary<string, UIData> uiChildRegisterDic = new Dictionary<string, UIData>();
+
         private List<UIContex> uiList = new List<UIContex>();//所有加载的UI
         private Dictionary<string, UIContex> poolDic = new Dictionary<string, UIContex>();//保存所有不销毁的UI
         private Dictionary<string, Type> uiTypeDic = new Dictionary<string, Type>();
@@ -110,6 +37,7 @@ namespace UIFramework
         public void Init()
         {
             InitTypes();
+            ProcessingUIDataMapping();
             InitUIRoot(UIResType.Resorces);
         }
 
@@ -135,6 +63,9 @@ namespace UIFramework
             poolCanvas = uiRoot.transform.FindTransform("PoolCanvas");
             foreach (UIType uiType in Enum.GetValues(typeof(UIType)))
             {
+                if (uiType == UIType.Child)
+                    continue;
+
                 Canvas tempCanvas = uiRoot.FindComponent<Canvas>($"{uiType}Canvas");
                 canvasDic[uiType] = tempCanvas;
                 showDic[uiType] = new ShowStackManager(uiType, tempCanvas.sortingOrder);
@@ -158,7 +89,34 @@ namespace UIFramework
                         uiTypeDic[uiAttribute.UIName] = type;
                         Register(uiAttribute.UIName, uiAttribute.UIType, uiAttribute.UIResType, uiAttribute.UICloseType, uiAttribute.HasAnimation, false);
                     }
+                }
 
+                object[] childAttrs = type.GetCustomAttributes(typeof(UIChildAttribute), false);
+                foreach (object attr in childAttrs)
+                {
+                    UIChildAttribute childAttribute = (UIChildAttribute)attr;
+                    if (childAttribute != null)
+                    {
+                        uiTypeDic[childAttribute.UIName] = type;
+                        RegisterChild(childAttribute.UIName, childAttribute.ParentUIName, childAttribute.LoadWithParent, childAttribute.UIResType, childAttribute.UICloseType, childAttribute.HasAnimation, false);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 处理UI的父子关系，必须所有UI注册完后才能处理这个映射关系
+        /// </summary>
+        public void ProcessingUIDataMapping()
+        {
+            foreach (var kv in uiChildRegisterDic)
+            {
+                UIData uiData = null;
+                if (uiRegisterDic.TryGetValue(kv.Value.ParentUIName, out uiData))
+                {
+                    if (uiData.ChildDic == null)
+                        uiData.ChildDic = new Dictionary<string, UIData>(5);
+                    uiData.ChildDic.Add(kv.Key, kv.Value);
                 }
             }
         }
@@ -181,7 +139,33 @@ namespace UIFramework
             uiData.UICloseType = uiCloseType;
             uiData.HasAnimation = hasAnimation;
             uiData.IsLuaUI = isLuaUI;
+            uiData.ParentUIName = null;
             uiRegisterDic.Add(uiName, uiData);
+        }
+
+        /// <summary>
+        /// 注册子UI
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        /// <param name="parentUIName">父窗口UI名字</param>
+        /// <param name="loadWithParent">是否和父窗口一起加载</param>
+        /// <param name="uiType">UI类型</param>
+        /// <param name="uiResType">UI加载方式</param>
+        /// <param name="uiCloseType">UI关闭方式</param>
+        /// <param name="hasAnimation">UI是否有动画</param>
+        public void RegisterChild(string uiName, string parentUIName, bool loadWithParent, UIResType uiResType, UICloseType uiCloseType, bool hasAnimation, bool isLuaUI)
+        {
+            //Debug.Log($"uiName:{uiName} uiType:{uiType} uiResType:{uiResType} uiCloseType:{uiCloseType} hasAnimation:{hasAnimation} isLuaUI:{isLuaUI}");
+            UIData uiData = new UIData();
+            uiData.UIName = uiName;
+            uiData.ParentUIName = parentUIName;
+            uiData.LoadWithParent = loadWithParent;
+            uiData.UIType = UIType.Child;
+            uiData.UIResType = uiResType;
+            uiData.UICloseType = uiCloseType;
+            uiData.HasAnimation = hasAnimation;
+            uiData.IsLuaUI = isLuaUI;
+            uiChildRegisterDic.Add(uiName, uiData);
         }
 
         /// <summary>
@@ -192,7 +176,9 @@ namespace UIFramework
         public async Task LoadUIAsync(string uiName)
         {
             await LoadUI(uiName);
-            GameUI tempGameUI = FindUI(uiName);
+            //尝试加载加载LoadWithParent=true的子UI
+            await TryLoadChildUI(uiName);
+            GameUI tempGameUI = FindUI(uiName) as GameUI;
             if (tempGameUI != null)
             {
                 UIManager.Instance.SetUIParent(tempGameUI.Transform, tempGameUI.UIContext.UIData.UIType);
@@ -229,22 +215,66 @@ namespace UIFramework
 
                 //加载新UI
                 UIData uiData = null;
-                if (uiRegisterDic.TryGetValue(uiName, out uiData))
+                uiRegisterDic.TryGetValue(uiName, out uiData);
+
+                //是否子UI
+                if (uiData == null)
+                    uiChildRegisterDic.TryGetValue(uiName, out uiData);
+
+                if (uiData != null)
                 {
                     tempUIContext = new UIContex();
                     tempUIContext.UIData = uiData;
                     tempUIContext.TCS = new TaskCompletionSource<bool>();
                     uiList.Add(tempUIContext);
 
-                    Main.Instance.StartCoroutine(LoadAsset(GetAssetUrl(uiName), go =>
+                    if (tempUIContext.UIData.UIResType != UIResType.SetGameObject)
                     {
-                        tempUIContext.UI = new GameUI();
-                        tempUIContext.UI.SetContext(go, tempUIContext);
+                        Main.Instance.StartCoroutine(LoadAsset(GetAssetUrl(uiName), go =>
+                        {
+                            if (tempUIContext.UIData.IsChildUI)
+                            {
+                                GameUI parentUI = FindUI(tempUIContext.UIData.ParentUIName) as GameUI;
+                                if (parentUI != null)
+                                    tempUIContext.UI = new ChildUI(tempUIContext.UIData.UIName, parentUI);
+                            }
+                            else
+                            {
+                                tempUIContext.UI = new GameUI();
+                            }
 
-                        if (tempUIContext.TCS != null)
-                            tempUIContext.TCS.SetResult(true);
+                            tempUIContext.UI.SetContext(go, tempUIContext);
 
-                    }));
+                            if (tempUIContext.TCS != null)
+                                tempUIContext.TCS.SetResult(true);
+                        }));
+                    }
+                    else
+                    {
+                        //处理SetGameObject的子UI
+                        GameUI parentUI = FindUI(tempUIContext.UIData.ParentUIName) as GameUI;
+                        if (parentUI != null)
+                        {
+                            if (tempUIContext.UIData.IsChildUI)
+                            {
+                                tempUIContext.UI = new ChildUI(tempUIContext.UIData.UIName, parentUI);
+
+                                if (parentUI != null)
+                                {
+                                    GameObject childGameObject = parentUI.ChildParentNode.FindGameObject(tempUIContext.UIData.UIName);
+                                    if (childGameObject == null)
+                                    {
+                                        Debug.LogErrorFormat("父UI:{0}不存在子UI节点:{1}", tempUIContext.UIData.ParentUIName, tempUIContext.UIData.UIName);
+                                    }
+                                    else
+                                    {
+                                        tempUIContext.UI.SetContext(childGameObject, tempUIContext);
+                                        tempUIContext.TCS.SetResult(true);
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     return tempUIContext.TCS.Task;
                 }
@@ -252,6 +282,38 @@ namespace UIFramework
                 Debug.LogError($"{uiName}:不存在");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// 尝试加载LoadWithParent=true的子UI
+        /// </summary>
+        /// <returns></returns>
+        public async Task TryLoadChildUI(string uiName)
+        {
+            UIData parentUIData = null;
+            if (uiRegisterDic.TryGetValue(uiName, out parentUIData))
+            {
+                if (parentUIData.HasChildUI)
+                {
+                    foreach (var kv in parentUIData.ChildDic)
+                    {
+                        if (kv.Value.LoadWithParent)// && kv.Value.UIResType != UIResType.SetGameObject
+                        {
+                            await LoadChildUI(kv.Key);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 加载子UI
+        /// </summary>
+        /// <param name="childUIName"></param>
+        /// <returns></returns>
+        private Task LoadChildUI(string childUIName)
+        {
+            return LoadUI(childUIName);
         }
 
         /// <summary>
@@ -265,16 +327,20 @@ namespace UIFramework
                 return;
 
             Canvas tempCanvas = null;
-            if (!canvasDic.TryGetValue(uiType, out tempCanvas))
-                return;
-
-            if (transform.parent != tempCanvas.transform)
+            if (canvasDic.TryGetValue(uiType, out tempCanvas))
             {
-                transform.SetParent(tempCanvas.transform, false);
-                transform.transform.localPosition = Vector3.zero;
-                transform.transform.localScale = Vector3.one;
-                transform.transform.localRotation = Quaternion.identity;
+                if (transform.parent != tempCanvas.transform)
+                    transform.SetParent(tempCanvas.transform, false);
             }
+            else if (uiType == UIType.Child)
+            {
+                //子UI暂时放到poolCanvas
+                if (transform.parent == null)
+                    transform.SetParent(poolCanvas.transform, false);
+            }
+            transform.transform.localPosition = Vector3.zero;
+            transform.transform.localScale = Vector3.one;
+            transform.transform.localRotation = Quaternion.identity;
         }
 
         /// <summary>
@@ -293,7 +359,7 @@ namespace UIFramework
                     if (tempUIContext.UIData.UICloseType == UICloseType.Destroy)
                     {
                         tempUIContext.TCS = null;
-                        if (tempUIContext.UI != null && tempUIContext.UI.UIState != GameUI.UIStateType.Destroy)
+                        if (tempUIContext.UI != null && tempUIContext.UI.UIState != UIStateType.Destroy)
                             tempUIContext.UI.Destroy();
                     }
                     else
@@ -314,13 +380,14 @@ namespace UIFramework
         /// </summary>
         /// <param name="uiName">UI名字</param>
         /// <returns></returns>
-        public GameUI FindUI(string uiName)
+        public UI FindUI(string uiName)
         {
             UIContex tempUIContext = FindUIContext(uiName);
             if (tempUIContext != null)
                 return tempUIContext.UI;
             return null;
         }
+
 
         /// <summary>
         /// 通过名字查找UIData
@@ -355,7 +422,7 @@ namespace UIFramework
         /// <param name="animator"></param>
         public void NotifyAnimationFinish(Animator animator)
         {
-            GameUI tempGameUI = null;
+            UI tempUI = null;
 
             for (int i = 0, max = uiList.Count; i < max; i++)
             {
@@ -364,14 +431,14 @@ namespace UIFramework
                 {
                     if (tempUIContext.UI.GameObject == animator.gameObject)
                     {
-                        tempGameUI = tempUIContext.UI;
+                        tempUI = tempUIContext.UI;
                         break;
                     }
                 }
             }
 
-            if (tempGameUI != null)
-                tempGameUI.OnNotifyAnimationState();
+            if (tempUI != null)
+                tempUI.OnNotifyAnimationState();
         }
 
 

@@ -13,9 +13,15 @@ public class MainMenuUI : UIMonoProxy
     public override void OnAwake()
     {
         Debug.Log("MainMenuUI OnInit");
+        RegisterListener("ParentUIButton", OnClickParentUIButton);
         RegisterListener("HighScoreButton", OnClickHighScoresBtn);
         RegisterListener("OptionButton", OnClickOptionBtn);
         RegisterListener("ExitButton", OnClickExitBtn);
+    }
+
+    void OnClickParentUIButton(PointerEventData eventData)
+    {
+        UIManager.Instance.Push("ParentUI");
     }
 
     void OnClickHighScoresBtn(PointerEventData eventData)
