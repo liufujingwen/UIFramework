@@ -9,19 +9,14 @@ namespace UIFramework
     /// <summary>
     /// 管理显示的堆栈
     /// </summary>
-    public class ShowStackManager
+    public class UIStackContainer : IUIContainer
     {
         //避免push过快
         bool pushing = false;
         //避免pop过快
         bool poping = false;
 
-        /// <summary>
-        /// Push和Pop忽略Mask的类型
-        /// </summary>
-        public const UIType IgnoreMaskType = UIType.Tips | UIType.TopMask | UIType.Top;
-
-        public ShowStackManager(UIType uiType, int minOrder)
+        public UIStackContainer(UIType uiType, int minOrder)
         {
             this.UIType = uiType;
             this.MinOrder = minOrder;
@@ -42,12 +37,14 @@ namespace UIFramework
         /// </summary>
         private const int ORDER_PER_PANEL = 40;
 
-        public void Push(string uiName, params object[] args)
+        public void Open(string uiName, params object[] args)
         {
-            PushAsync(uiName, args).ConfigureAwait(true);
+            if (UIManager.Instance.ClosingAll)
+                return;
+            OpenAsync(uiName, args).ConfigureAwait(true);
         }
 
-        public async Task PushAsync(string uiName, params object[] args)
+        public async Task OpenAsync(string uiName, params object[] args)
         {
             if (pushing)
                 return;
@@ -57,7 +54,7 @@ namespace UIFramework
             await MaskManager.Instance.LoadMask();
 
             //保证播放动画期间不能操作
-            if ((this.UIType & IgnoreMaskType) == 0)
+            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
                 MaskManager.Instance.SetActive(true);
 
             Task loadTask = UIManager.Instance.LoadUIAsync(uiName);
@@ -66,7 +63,7 @@ namespace UIFramework
                 if (loadTask == null)
                 {
                     pushing = false;
-                    if ((this.UIType & IgnoreMaskType) == 0)
+                    if ((this.UIType & UIManager.IgnoreMaskType) == 0)
                         MaskManager.Instance.SetActive(false);
                 }
                 await loadTask;
@@ -77,11 +74,7 @@ namespace UIFramework
             {
                 string curUIName = showStack.Peek();
                 GameUI curUI = UIManager.Instance.FindUI(curUIName) as GameUI;
-
-                if (curUI != null && curUI.UIState > UIStateType.None)
-                {
-                    await curUI.DisableAsync();
-                }
+                await curUI?.DisableAsync();
             }
 
             showStack.Push(uiName);
@@ -96,10 +89,15 @@ namespace UIFramework
             }
 
             //释放mask
-            if ((this.UIType & IgnoreMaskType) == 0)
+            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
                 MaskManager.Instance.SetActive(false);
 
             pushing = false;
+        }
+
+        public void Close(string uiName)
+        {
+            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用Close", this.UIType);
         }
 
         public void Pop()
@@ -117,7 +115,7 @@ namespace UIFramework
             await MaskManager.Instance.LoadMask();
 
             //保证播放动画期间不能操作
-            if ((this.UIType & IgnoreMaskType) == 0)
+            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
                 MaskManager.Instance.SetActive(true);
 
             //最上层UI退栈
@@ -142,19 +140,21 @@ namespace UIFramework
                 GameUI preUI = UIManager.Instance.FindUI(preUIName) as GameUI;
                 if (preUI != null)
                 {
-                    if (preUI.UIState > UIStateType.None)
-                        await preUI.EnableAsync();
+                    await preUI.EnableAsync();
                 }
             }
 
             //释放Mask
-            if ((this.UIType & IgnoreMaskType) == 0)
+            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
                 MaskManager.Instance.SetActive(false);
 
             poping = false;
         }
 
-        //删除UI
+        /// <summary>
+        /// 删除指定名字的UI
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
         public void Remove(string uiName)
         {
             List<string> uiList = showStack.GetList();

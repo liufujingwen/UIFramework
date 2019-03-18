@@ -56,7 +56,6 @@ namespace UIFramework
             }
         }
 
-
         public void RegisterListener(GameObject go, VoidDelegate handle, bool clear = true)
         {
             if (go)
@@ -68,6 +67,27 @@ namespace UIFramework
                     listener.onClick += handle;
                 }
             }
+        }
+
+        public void OpenChildUI(string childUIName, params object[] args)
+        {
+            if (UIContext == null || UIContext.UI == null)
+                return;
+
+            GameUI gameUI = UIContext.UI as GameUI;
+            if (gameUI == null)
+                return;
+
+            gameUI.OpenChildUI(childUIName, args);
+        }
+
+        public void CloseChildUI(string childUIName)
+        {
+            GameUI gameUI = UIContext.UI as GameUI;
+            if (gameUI == null)
+                return;
+
+            gameUI.CloseChildUI(childUIName);
         }
 
         public abstract void OnNotifiy(string evt, params object[] args);

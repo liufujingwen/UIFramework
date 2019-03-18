@@ -14,6 +14,11 @@ public class ParentUI : UIMonoProxy
     {
         Debug.Log("ParentUI OnAwake");
         RegisterListener("BackButton", OnClickExitBtn);
+        RegisterListener("OptionMenu", OnClickExitOptionMenu);
+        RegisterListener("Tab1", OnClickTab1);
+        RegisterListener("Tab2", OnClickTab2);
+        RegisterListener("Tab3", OnClickTab3);
+
     }
 
     void OnClickExitBtn(PointerEventData eventData)
@@ -21,9 +26,36 @@ public class ParentUI : UIMonoProxy
         UIManager.Instance.Pop();
     }
 
+    void OnClickExitOptionMenu(PointerEventData eventData)
+    {
+        UIManager.Instance.Open("OptionMenuUI");
+    }
+
+    void OnClickTab1(PointerEventData eventData)
+    {
+        CloseChildUI("ChildUI2");
+        CloseChildUI("ChildUI3");
+        OpenChildUI("ChildUI1");
+    }
+
+    void OnClickTab2(PointerEventData eventData)
+    {
+        CloseChildUI("ChildUI1");
+        CloseChildUI("ChildUI3");
+        OpenChildUI("ChildUI2");
+    }
+
+    void OnClickTab3(PointerEventData eventData)
+    {
+        CloseChildUI("ChildUI1");
+        CloseChildUI("ChildUI2");
+        OpenChildUI("ChildUI3");
+    }
+
     public override void OnStart(params object[] args)
     {
         Debug.Log("ParentUI OnStart");
+        OpenChildUI("ChildUI2");
     }
 
     public override void OnEnable()

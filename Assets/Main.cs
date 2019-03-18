@@ -26,7 +26,7 @@ public class Main : MonoBehaviour
 
         DllHelper.Init();
         UIManager.Instance.Init();
-        UIManager.Instance.Push("MainMenuUI");
+        UIManager.Instance.Open("MainMenuUI");
     }
 
     private byte[] CustomLoader(ref string filepath)
@@ -53,6 +53,28 @@ public class Main : MonoBehaviour
                 LuaEnv.DoString(bytes, luaFile);
             }
         }
+    }
+
+
+    private void OnGUI()
+    {
+        GUILayout.BeginHorizontal();
+
+        GUILayout.Space(50);
+
+        if (GUILayout.Button("打开弹窗"))
+        {
+            UIManager.Instance.Open("DialogUI", 1, 2, 3);
+        }
+
+        GUILayout.Space(30);
+
+        if (GUILayout.Button("关闭弹窗"))
+        {
+            UIManager.Instance.Close("DialogUI");
+        }
+
+        GUILayout.EndHorizontal();
     }
 
 }

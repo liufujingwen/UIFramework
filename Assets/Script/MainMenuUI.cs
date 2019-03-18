@@ -21,17 +21,17 @@ public class MainMenuUI : UIMonoProxy
 
     void OnClickParentUIButton(PointerEventData eventData)
     {
-        UIManager.Instance.Push("ParentUI");
+        UIManager.Instance.Open("ParentUI");
     }
 
     void OnClickHighScoresBtn(PointerEventData eventData)
     {
-        UIManager.Instance.Push("HighScoreUI");
+        UIManager.Instance.Open("HighScoreUI");
     }
 
     void OnClickOptionBtn(PointerEventData eventData)
     {
-        UIManager.Instance.Push("OptionMenuUI");
+        UIManager.Instance.Open("OptionMenuUI");
     }
 
     void OnClickExitBtn(PointerEventData eventData)

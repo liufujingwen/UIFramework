@@ -22,9 +22,10 @@ namespace UIFramework
         private Dictionary<string, Type> uiTypeDic = new Dictionary<string, Type>();
 
         /// <summary>
-        /// 显示堆栈，每个UIType对应一个栈
+        /// 显示管理器
         /// </summary>
-        private Dictionary<UIType, ShowStackManager> showDic = new Dictionary<UIType, ShowStackManager>();
+        private Dictionary<UIType, IUIContainer> showDic = new Dictionary<UIType, IUIContainer>();
+
         //UI相机
         private Camera uiCamera = null;
         //UIRoot
@@ -33,6 +34,22 @@ namespace UIFramework
         private Transform poolCanvas = null;
         //保存UIType对应的界面父节点
         private Dictionary<UIType, Canvas> canvasDic = new Dictionary<UIType, Canvas>();
+
+        /// <summary>
+        /// Push和Pop忽略Mask的类型
+        /// </summary>
+        public const UIType IgnoreMaskType = UIType.Tips | UIType.TopMask | UIType.Top;
+
+        /// <summary>
+        /// 堆栈管理的UI类型
+        /// </summary>
+        public const UIType StackType = UIType.Normal;
+
+        /// <summary>
+        /// 是否清除所有UI
+        /// </summary>
+        public bool ClosingAll = false;
+
 
         public void Init()
         {
@@ -68,7 +85,11 @@ namespace UIFramework
 
                 Canvas tempCanvas = uiRoot.FindComponent<Canvas>($"{uiType}Canvas");
                 canvasDic[uiType] = tempCanvas;
-                showDic[uiType] = new ShowStackManager(uiType, tempCanvas.sortingOrder);
+
+                if ((uiType & StackType) != 0)
+                    showDic[uiType] = new UIStackContainer(uiType, tempCanvas.sortingOrder);
+                else
+                    showDic[uiType] = new UIListContainer(uiType, tempCanvas.sortingOrder);
             }
         }
 
@@ -98,7 +119,7 @@ namespace UIFramework
                     if (childAttribute != null)
                     {
                         uiTypeDic[childAttribute.UIName] = type;
-                        RegisterChild(childAttribute.UIName, childAttribute.ParentUIName, childAttribute.LoadWithParent, childAttribute.UIResType, childAttribute.UICloseType, childAttribute.HasAnimation, false);
+                        RegisterChild(childAttribute.UIName, childAttribute.ParentUIName, childAttribute.LoadWithParent, childAttribute.UIResType, childAttribute.HasAnimation, false);
                     }
                 }
             }
@@ -153,16 +174,14 @@ namespace UIFramework
         /// <param name="uiResType">UI加载方式</param>
         /// <param name="uiCloseType">UI关闭方式</param>
         /// <param name="hasAnimation">UI是否有动画</param>
-        public void RegisterChild(string uiName, string parentUIName, bool loadWithParent, UIResType uiResType, UICloseType uiCloseType, bool hasAnimation, bool isLuaUI)
+        public void RegisterChild(string uiName, string parentUIName, bool loadWithParent, UIResType uiResType, bool hasAnimation, bool isLuaUI)
         {
-            //Debug.Log($"uiName:{uiName} uiType:{uiType} uiResType:{uiResType} uiCloseType:{uiCloseType} hasAnimation:{hasAnimation} isLuaUI:{isLuaUI}");
             UIData uiData = new UIData();
             uiData.UIName = uiName;
             uiData.ParentUIName = parentUIName;
             uiData.LoadWithParent = loadWithParent;
             uiData.UIType = UIType.Child;
             uiData.UIResType = uiResType;
-            uiData.UICloseType = uiCloseType;
             uiData.HasAnimation = hasAnimation;
             uiData.IsLuaUI = isLuaUI;
             uiChildRegisterDic.Add(uiName, uiData);
@@ -178,14 +197,15 @@ namespace UIFramework
             await LoadUI(uiName);
             //尝试加载加载LoadWithParent=true的子UI
             await TryLoadChildUI(uiName);
-            GameUI tempGameUI = FindUI(uiName) as GameUI;
-            if (tempGameUI != null)
-            {
-                UIManager.Instance.SetUIParent(tempGameUI.Transform, tempGameUI.UIContext.UIData.UIType);
 
+            UI tempUI = FindUI(uiName);
+            if (tempUI != null)
+            {
+                //保证从池中出来的父节点也是正确的
+                SetUIParent(tempUI.Transform, tempUI.UIContext.UIData.UIType);
                 //保证所有UI只执行一次Init
-                if (!tempGameUI.AwakeState)
-                    tempGameUI.Awake();
+                if (!tempUI.AwakeState)
+                    tempUI.Awake();
             }
         }
 
@@ -356,7 +376,8 @@ namespace UIFramework
                 {
                     uiList.RemoveAt(i);
 
-                    if (tempUIContext.UIData.UICloseType == UICloseType.Destroy)
+                    //子UI一律销毁
+                    if (tempUIContext.UIData.UIType == UIType.Child || tempUIContext.UIData.UICloseType == UICloseType.Destroy)
                     {
                         tempUIContext.TCS = null;
                         if (tempUIContext.UI != null && tempUIContext.UI.UIState != UIStateType.Destroy)
@@ -367,6 +388,9 @@ namespace UIFramework
                         //UI不销毁，直接回池
                         if (tempUIContext.UI.Transform)
                             tempUIContext.UI.Transform.SetParent(poolCanvas, false);
+
+                        GameUI gameUI = tempUIContext.UI as GameUI;
+                        gameUI?.InPool();
                         poolDic.Add(tempUIContext.UIData.UIName, tempUIContext);
                     }
 
@@ -442,7 +466,7 @@ namespace UIFramework
         }
 
 
-        public void Push(string uiName, params object[] args)
+        public void Open(string uiName, params object[] args)
         {
             UIData uiData = FindUIData(uiName);
             if (uiData == null)
@@ -451,9 +475,14 @@ namespace UIFramework
                 return;
             }
 
-            ShowStackManager showStack = null;
-            if (showDic.TryGetValue(uiData.UIType, out showStack))
-                showStack.Push(uiName, args);
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(uiData.UIType, out uiContainer))
+            {
+                if (uiContainer is UIStackContainer)
+                    (uiContainer as UIStackContainer).Open(uiName, args);
+                else
+                    (uiContainer as UIListContainer).Open(uiName, args);
+            }
         }
 
         /// <summary>
@@ -462,9 +491,53 @@ namespace UIFramework
         /// <param name="uiType">ui类型</param>
         public void Pop()
         {
-            ShowStackManager tempShowStack = null;
-            if (showDic.TryGetValue(UIType.Normal, out tempShowStack))
-                tempShowStack.Pop();
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(UIType.Normal, out uiContainer))
+            {
+                if (uiContainer is UIStackContainer)
+                    (uiContainer as UIStackContainer).Pop();
+            }
+        }
+
+        /// <summary>
+        /// 关闭指定UI
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        public void Close(string uiName)
+        {
+            UIData uiData = FindUIData(uiName);
+            if (uiData == null)
+            {
+                Debug.LogError($"Close的UI:{uiName}未注册");
+                return;
+            }
+
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(uiData.UIType, out uiContainer))
+            {
+                if (uiContainer is UIListContainer)
+                    (uiContainer as UIListContainer).Close(uiName);
+            }
+        }
+
+        /// <summary>
+        /// 删除指定名字的UI
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        public void Remove(string uiName)
+        {
+            UIData uiData = FindUIData(uiName);
+            if (uiData == null)
+            {
+                Debug.LogError($"Remove的UI:{uiName}未注册");
+                return;
+            }
+
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(uiData.UIType, out uiContainer))
+            {
+                uiContainer.Remove(uiName);
+            }
         }
 
         /// <summary>
@@ -473,9 +546,12 @@ namespace UIFramework
         /// <param name="uiType">ui类型</param>
         public void Pop(UIType uiType)
         {
-            ShowStackManager tempShowStack = null;
-            if (showDic.TryGetValue(uiType, out tempShowStack))
-                tempShowStack.Pop();
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(uiType, out uiContainer))
+            {
+                if (uiContainer is UIStackContainer)
+                    (uiContainer as UIStackContainer).Pop();
+            }
         }
 
         /// <summary>
@@ -495,9 +571,11 @@ namespace UIFramework
         /// </summary>
         public void Clear()
         {
+            ClosingAll = true;
             MaskManager.Instance.Clear();
             foreach (var kv in showDic)
                 kv.Value.Clear();
+            ClosingAll = false;
         }
 
         //模拟异步加载资源

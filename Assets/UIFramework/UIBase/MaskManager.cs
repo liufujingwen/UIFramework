@@ -25,9 +25,9 @@ namespace UIFramework
             MaskCount += visible ? 1 : -1;
 
             //if (MaskCount > 0)
-            //    UIManager.Instance.Push("MaskUI");
+            //    UIManager.Instance.Open("MaskUI");
             //else
-            //    UIManager.Instance.Pop(UIType.Top);
+            //    UIManager.Instance.Close("MaskUI");
         }
 
         public void Clear()

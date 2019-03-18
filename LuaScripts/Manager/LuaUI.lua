@@ -34,14 +34,20 @@ function LuaUI:RegisterListener(button, handle, clear)
     clear = clear and true or false
     self.UIProxy:RegisterListener(button, function()
         if handle then
-            handle(self);
+            handle(self)
         end
     end, clear)
 
 end
 
 function LuaUI:FindComponent(name, type)
+    return self.UIProxy:FindComponent(name, type)
+end
 
-    return self.UIProxy:FindComponent(name, type);
+function LuaUI:OpenChildUI(childUIName, ...)
+    self.UIProxy:OpenChildUI(childUIName, ...)
+end
 
+function LuaUI:CloseChildUI(childUIName)
+    self.UIProxy:CloseChildUI(childUIName)
 end

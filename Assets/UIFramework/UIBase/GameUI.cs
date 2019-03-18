@@ -8,7 +8,7 @@ namespace UIFramework
     public class GameUI : UI
     {
         //保存子UI
-        Dictionary<string, ChildUI> ChildDic = null;
+        private ChildUIContainer childUIContainer = new ChildUIContainer();
 
         /// <summary>
         /// 等待所有动画播放完成
@@ -17,85 +17,82 @@ namespace UIFramework
         {
             //等待自己动画播放完成
             await base.WaitAnimationFinished();
-
             //等待子UI动画播放完成
-            if (ChildDic != null)
-            {
-                foreach (var kv in ChildDic)
-                    await kv.Value.WaitAnimationFinished();
-            }
+            await childUIContainer.WaitAnimationFinished();
         }
 
         /// <summary>
-        /// 添加子窗口
+        /// 添加子UI
         /// </summary>
-        /// <param name="childUIName">子窗口名字</param>
-        /// <param name="childUI">子窗口实例</param>
+        /// <param name="childUIName">子UI名字</param>
+        /// <param name="childUI">子UI实例</param>
         public void AddChildUI(string childUIName, ChildUI childUI)
         {
-            if (string.IsNullOrEmpty(childUIName) || childUI == null)
-                return;
+            childUIContainer.AddChildUI(childUIName, childUI);
+        }
 
-            if (ChildDic == null)
-                ChildDic = new Dictionary<string, ChildUI>(5);
+        public void OpenChildUI(string childUIName, params object[] args)
+        {
+            childUIContainer.Open(childUIName, args);
+        }
 
-            if (!ChildDic.ContainsKey(childUIName))
-                ChildDic[childUIName] = childUI;
+        public void CloseChildUI(string childUIName)
+        {
+            childUIContainer.Close(childUIName);
         }
 
         public override void Awake()
         {
             base.Awake();
-
             //已加载的子UI也需要执行Awake
-            if (this.UIContext.UIData.HasChildUI)
-            {
-                foreach (var kv in this.UIContext.UIData.ChildDic)
-                {
-                    ChildUI childUI = UIManager.Instance.FindUI(kv.Key) as ChildUI;
-                    if (childUI != null)
-                        childUI.Awake();
-                }
-            }
+            childUIContainer.TryAwake();
         }
 
-
-        public override async Task StartAsync(params object[] args)
+        /// <summary>
+        /// 记录在已显示列表的UI需要执行Enable
+        /// </summary>
+        public override void BeforeEnable()
         {
-
-            await base.StartAsync(args);
+            base.BeforeEnable();
+            childUIContainer.Enable();
         }
 
+        /// <summary>
+        /// 所有已显示的子UI播放退场动画
+        /// </summary>
 
-        public override void Start(params object[] args)
+        public override void BeforeDisable()
         {
-            base.Start(args);
-
-            //if (ChildDic != null)
-            //{
-            //    foreach (var kv in ChildDic)
-            //    {
-            //        if (kv.Value != null && kv.Value.UIState == UIStateType.Awake)
-            //            childUI.Awake();
-            //    }
-            //}
-
-        }
-
-        public override void Enable()
-        {
-            base.Enable();
+            base.BeforeDisable();
+            //有动画的子UI退场
+            childUIContainer.BeforeDisable();
         }
 
         public override void Disable()
         {
+            //没有动画的子UI退场
+            childUIContainer.Disable();
             base.Disable();
+        }
+
+        public override void BeforeDestroy()
+        {
+            base.BeforeDestroy();
+            childUIContainer.Disable();
         }
 
         public override void Destroy()
         {
-
+            childUIContainer.Clear();
             base.Destroy();
+        }
+
+        //UI回池
+        public void InPool()
+        {
+            if (this.UIState > UIStateType.Awake)
+                this.UIState = UIStateType.Awake;
+            childUIContainer.InPool();
         }
 
     }
