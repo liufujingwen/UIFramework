@@ -43,10 +43,10 @@ namespace UIFramework
         /// <summary>
         /// 堆栈管理的UI类型
         /// </summary>
-        public const UIType StackType = UIType.Normal;
+        public const UIType StackType = UIType.Normal | UIType.Popup;
 
         /// <summary>
-        /// 是否清除所有UI
+        /// 正在关闭全部（避免在关闭过程中有些UI写了打开某个ui在disable、destroy里面）
         /// </summary>
         public bool ClosingAll = false;
 
@@ -152,7 +152,6 @@ namespace UIFramework
         /// <param name="hasAnimation">UI是否有动画</param>
         public void Register(string uiName, UIType uiType, UIResType uiResType, UICloseType uiCloseType, bool hasAnimation, bool isLuaUI)
         {
-            //Debug.Log($"uiName:{uiName} uiType:{uiType} uiResType:{uiResType} uiCloseType:{uiCloseType} hasAnimation:{hasAnimation} isLuaUI:{isLuaUI}");
             UIData uiData = new UIData();
             uiData.UIName = uiName;
             uiData.UIType = uiType;
@@ -572,7 +571,7 @@ namespace UIFramework
         public void Clear()
         {
             ClosingAll = true;
-            MaskManager.Instance.Clear();
+            MaskManager.Instance.Close();
             foreach (var kv in showDic)
                 kv.Value.Clear();
             ClosingAll = false;

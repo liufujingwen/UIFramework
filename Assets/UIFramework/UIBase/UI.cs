@@ -11,11 +11,12 @@ namespace UIFramework
     public enum UIType
     {
         Normal = 1,
-        Dialog = 2,
-        Guide = 4,
-        Tips = 8,
-        TopMask = 16,
-        Top = 32,
+        Popup = 2,
+        Dialog = 4,
+        Guide = 8,
+        Tips = 16,
+        TopMask = 32,
+        Top = 64,
 
         Child,//子UI
     }

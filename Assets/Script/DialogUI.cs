@@ -20,16 +20,22 @@ public class DialogUI : UIMonoProxy
     void OnClickCancelBtn(PointerEventData eventData)
     {
         UIManager.Instance.Close("DialogUI");
+        UIManager.Instance.Remove("MainMenuUI");
     }
 
     void OnClickOkBtn(PointerEventData eventData)
     {
         UIManager.Instance.Close("DialogUI");
+        UIManager.Instance.Open("MainMenuUI");
     }
 
     public override void OnStart(params object[] args)
     {
         Debug.Log("DialogUI OnStart");
+        for (int i = 0; i < args.Length; i++)
+        {
+            Debug.Log($"DialogUI OnStart agrs[{i}]={args[i]}");
+        }
     }
 
     public override void OnEnable()

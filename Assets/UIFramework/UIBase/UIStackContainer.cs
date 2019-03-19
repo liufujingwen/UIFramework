@@ -15,6 +15,8 @@ namespace UIFramework
         bool pushing = false;
         //避免pop过快
         bool poping = false;
+        //正在关闭全部（避免在关闭过程中有些UI写了打开某个ui在disable、destroy里面）
+        bool closingAll = false;
 
         public UIStackContainer(UIType uiType, int minOrder)
         {
@@ -40,6 +42,8 @@ namespace UIFramework
         public void Open(string uiName, params object[] args)
         {
             if (UIManager.Instance.ClosingAll)
+                return;
+            if (closingAll)
                 return;
             OpenAsync(uiName, args).ConfigureAwait(true);
         }
@@ -84,6 +88,11 @@ namespace UIFramework
                 //先设置UI层级
                 int order = (showStack.Count - 1) * ORDER_PER_PANEL + MinOrder;
                 newGameUI.SetCavansOrder(order);
+
+                bool contains = showStack.Contains(uiName);
+                //栈底如果存在则直接修改状态，否者无法执行StartAsync里面的逻辑（循环栈）
+                if (contains && newGameUI.UIState > UIStateType.Awake)
+                    newGameUI.UIState = UIStateType.Awake;
                 //播放UI入场动画
                 await newGameUI.StartAsync(args);
             }
@@ -125,11 +134,17 @@ namespace UIFramework
                 GameUI curUI = UIManager.Instance.FindUI(curUIName) as GameUI;
                 if (curUI != null)
                 {
-                    if (curUI.UIContext.UIData.UICloseType == UICloseType.Destroy)
-                        await curUI.DestroyAsync();
-                    else
+                    bool contains = showStack.Contains(curUIName);
+
+                    //栈底没有才能Destroy(循环栈)
+                    if (contains || curUI.UIContext.UIData.UICloseType != UICloseType.Destroy)
                         await curUI.DisableAsync();
-                    UIManager.Instance.RemoveUI(curUIName);
+                    else
+                        await curUI.DestroyAsync();
+
+                    //栈底没有才能移除UI(循环栈)
+                    if (!contains)
+                        UIManager.Instance.RemoveUI(curUIName);
                 }
             }
 
@@ -167,11 +182,14 @@ namespace UIFramework
                         UIManager.Instance.RemoveUI(uiName);
                 }
             }
-            uiList.Remove(uiName);
+
+            showStack.Remove(uiName);
         }
 
         public void Clear()
         {
+            closingAll = true;
+
             List<string> uiList = showStack.GetList();
             if (uiList.Count > 0)
             {
@@ -181,6 +199,8 @@ namespace UIFramework
                     UIManager.Instance.RemoveUI(tempUIName);
                 }
             }
+
+            closingAll = false;
 
             uiList.Clear();
             pushing = false;

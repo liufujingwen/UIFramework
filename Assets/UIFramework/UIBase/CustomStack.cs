@@ -46,6 +46,11 @@ namespace UIFramework
             return list;
         }
 
+        public bool Contains(T value)
+        {
+            return list.Contains(value);
+        }
+
         public void Remove(T value)
         {
             for (int i = list.Count - 1; i >= 0; i--)
