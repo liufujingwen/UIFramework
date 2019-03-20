@@ -362,7 +362,7 @@ namespace UIFramework
             transform.transform.localRotation = Quaternion.identity;
         }
 
-        
+
 
         /// <summary>
         /// 通过名字查找UI
@@ -443,10 +443,7 @@ namespace UIFramework
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(uiData.UIType, out uiContainer))
             {
-                if (uiContainer is UIStackContainer)
-                    (uiContainer as UIStackContainer).Open(uiName, args);
-                else
-                    (uiContainer as UIListContainer).Open(uiName, args);
+                uiContainer?.Open(uiName, args);
             }
         }
 
@@ -459,8 +456,7 @@ namespace UIFramework
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(UIType.Normal, out uiContainer))
             {
-                if (uiContainer is UIStackContainer)
-                    (uiContainer as UIStackContainer).Pop();
+                uiContainer?.Pop();
             }
         }
 
@@ -480,8 +476,7 @@ namespace UIFramework
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(uiData.UIType, out uiContainer))
             {
-                if (uiContainer is UIListContainer)
-                    (uiContainer as UIListContainer).Close(uiName);
+                uiContainer?.Close(uiName);
             }
         }
 
@@ -494,8 +489,7 @@ namespace UIFramework
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(uiType, out uiContainer))
             {
-                if (uiContainer is UIStackContainer)
-                    (uiContainer as UIStackContainer).Pop();
+                uiContainer?.Pop();
             }
         }
 
