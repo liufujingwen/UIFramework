@@ -10,6 +10,7 @@ namespace UIFramework
     /// </summary>
     public enum UIType
     {
+        Hud,
         Normal = 1,
         Popup = 2,
         Dialog = 4,
