@@ -77,13 +77,13 @@ namespace UIFramework
             }
 
             uiCamera = uiRoot.FindComponent<Camera>("Camera");
-            poolCanvas = uiRoot.transform.FindTransform("PoolCanvas");
+            poolCanvas = uiRoot.transform.FindTransform("CanvasPool");
             foreach (UIType uiType in Enum.GetValues(typeof(UIType)))
             {
                 if (uiType == UIType.Child)
                     continue;
 
-                Canvas tempCanvas = uiRoot.FindComponent<Canvas>($"{uiType}Canvas");
+                Canvas tempCanvas = uiRoot.FindComponent<Canvas>($"Canvas{uiType}");
                 canvasDic[uiType] = tempCanvas;
 
                 if ((uiType & StackType) != 0)
