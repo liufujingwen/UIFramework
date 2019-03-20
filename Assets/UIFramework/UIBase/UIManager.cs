@@ -16,9 +16,11 @@ namespace UIFramework
         private Dictionary<string, UIData> uiRegisterDic = new Dictionary<string, UIData>();
         //保存子UI信息
         private Dictionary<string, UIData> uiChildRegisterDic = new Dictionary<string, UIData>();
-
-        private List<UIContex> uiList = new List<UIContex>();//所有加载的UI
-        private Dictionary<string, UIContex> poolDic = new Dictionary<string, UIContex>();//保存所有不销毁的UI
+        //所有加载的UI、子UI
+        private List<UIContex> uiList = new List<UIContex>();
+        //保存所有不销毁的UI,不包括子UI
+        private Dictionary<string, UIContex> poolDic = new Dictionary<string, UIContex>();
+        //C#的UI逻辑Type
         private Dictionary<string, Type> uiTypeDic = new Dictionary<string, Type>();
 
         /// <summary>
@@ -26,6 +28,8 @@ namespace UIFramework
         /// </summary>
         private Dictionary<UIType, IUIContainer> showDic = new Dictionary<UIType, IUIContainer>();
 
+        //HUD相机
+        private Camera hudCamera = null;
         //UI相机
         private Camera uiCamera = null;
         //UIRoot
@@ -61,35 +65,76 @@ namespace UIFramework
         public void InitUIRoot(UIResType uiResType)
         {
             //把所有UI先清空
-            this.Clear();
-            this.canvasDic.Clear();
-            if (this.uiRoot)
-                GameObject.Destroy(this.uiRoot.gameObject);
 
             GameObject uiRoot = null;
-
             if (uiResType == UIResType.Resorces)
+            {
                 uiRoot = GameObject.Instantiate(Resources.Load("UI/UIRoot")) as GameObject;
+            }
             else
             {
                 //从AssetBundle加载
                 //uiRoot = GameObject.Instantiate(Resources.Load("UI/UIRoot")) as GameObject;
             }
+            ChangeUIRoot(uiRoot.transform);
+        }
 
-            uiCamera = uiRoot.FindComponent<Camera>("Camera");
-            poolCanvas = uiRoot.transform.FindTransform("CanvasPool");
+        /// <summary>
+        /// 切换UIRoot
+        /// </summary>
+        /// <param name="uiRoot"></param>
+        void ChangeUIRoot(Transform uiRoot)
+        {
+            if (uiRoot == null)
+                return;
+
+            //先记录旧的UIRoot
+            Transform oldUIRoot = this.uiRoot;
+
+            this.uiRoot = uiRoot;
+            hudCamera = uiRoot.gameObject.FindComponent<Camera>("CameraHUD");
+            uiCamera = uiRoot.gameObject.FindComponent<Camera>("Camera");
+            poolCanvas = uiRoot.FindTransform("CanvasPool");
+
             foreach (UIType uiType in Enum.GetValues(typeof(UIType)))
             {
                 if (uiType == UIType.Child)
                     continue;
 
-                Canvas tempCanvas = uiRoot.FindComponent<Canvas>($"Canvas{uiType}");
+                Canvas tempCanvas = uiRoot.gameObject.FindComponent<Canvas>($"Canvas{uiType}");
                 canvasDic[uiType] = tempCanvas;
 
-                if ((uiType & StackType) != 0)
-                    showDic[uiType] = new UIStackContainer(uiType, tempCanvas.sortingOrder);
-                else
-                    showDic[uiType] = new UIListContainer(uiType, tempCanvas.sortingOrder);
+                if (!showDic.ContainsKey(uiType))
+                {
+                    if ((uiType & StackType) != 0)
+                        showDic[uiType] = new UIStackContainer(uiType, tempCanvas.sortingOrder);
+                    else
+                        showDic[uiType] = new UIListContainer(uiType, tempCanvas.sortingOrder);
+                }
+            }
+
+            //改变池中UI的父节点
+            foreach (var kv in poolDic)
+            {
+                if (kv.Value.UI != null && kv.Value.UI.Transform != null)
+                {
+                    if (kv.Value.UI.Transform.parent != poolCanvas)
+                        kv.Value.UI.Transform.SetParent(poolCanvas, true);
+                }
+            }
+
+            //改变ui的父节点
+            for (int i = 0; i < uiList.Count; i++)
+            {
+                UIContex uiContex = uiList[i];
+                if (uiContex != null && uiContex.UI != null && uiContex.UI.Transform != null)
+                    SetUIParent(uiContex.UI.Transform, uiContex.UIData.UIType, true);
+            }
+
+            if (oldUIRoot != null)
+            {
+                GameObject.Destroy(oldUIRoot.gameObject);
+                oldUIRoot = null;
             }
         }
 
@@ -201,7 +246,7 @@ namespace UIFramework
             if (tempUI != null)
             {
                 //保证从池中出来的父节点也是正确的
-                SetUIParent(tempUI.Transform, tempUI.UIContext.UIData.UIType);
+                SetUIParent(tempUI.Transform, tempUI.UIContext.UIData.UIType, false);
                 //保证所有UI只执行一次Init
                 if (!tempUI.AwakeState)
                     tempUI.Awake();
@@ -340,7 +385,8 @@ namespace UIFramework
         /// </summary>
         /// <param name="transform">界面transform</param>
         /// <param name="uiType">ui类型</param>
-        public void SetUIParent(Transform transform, UIType uiType)
+        /// <param name="worldPositionStays">If true, the parent-relative position, scale and rotation are modified such that</param>
+        public void SetUIParent(Transform transform, UIType uiType, bool worldPositionStays)
         {
             if (!transform)
                 return;
@@ -349,17 +395,14 @@ namespace UIFramework
             if (canvasDic.TryGetValue(uiType, out tempCanvas))
             {
                 if (transform.parent != tempCanvas.transform)
-                    transform.SetParent(tempCanvas.transform, false);
+                    transform.SetParent(tempCanvas.transform, worldPositionStays);
             }
             else if (uiType == UIType.Child)
             {
                 //子UI暂时放到poolCanvas
                 if (transform.parent == null)
-                    transform.SetParent(poolCanvas.transform, false);
+                    transform.SetParent(poolCanvas.transform, worldPositionStays);
             }
-            transform.transform.localPosition = Vector3.zero;
-            transform.transform.localScale = Vector3.one;
-            transform.transform.localRotation = Quaternion.identity;
         }
 
 

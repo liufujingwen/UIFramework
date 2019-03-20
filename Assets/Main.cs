@@ -9,6 +9,7 @@ using UIFramework;
 public class Main : MonoBehaviour
 {
     public static Main Instance = null;
+    public bool useGUI = false;
     public LuaEnv LuaEnv = new LuaEnv();
     string luaPath = "LuaScripts";
 
@@ -55,25 +56,31 @@ public class Main : MonoBehaviour
         }
     }
 
-
-    private void OnGUI()
+    private void Update()
     {
-        GUILayout.BeginHorizontal();
-
-        GUILayout.Space(50);
-
-        if (GUILayout.Button("打开弹窗"))
+        if (Input.GetKeyUp(KeyCode.I))
         {
             UIManager.Instance.Open("DialogUI", 1, 2, 3);
         }
-
-        GUILayout.Space(30);
-
-        if (GUILayout.Button("关闭弹窗"))
+        else if (Input.GetKeyUp(KeyCode.O))
         {
             UIManager.Instance.Close("DialogUI");
         }
+        else if (Input.GetKeyUp(KeyCode.P))
+        {
+            UIManager.Instance.InitUIRoot(UIResType.Resorces);
+        }
+    }
 
+    private void OnGUI()
+    {
+        GUILayout.Space(Screen.height - 20);
+        GUILayout.BeginHorizontal();
+        GUILayout.Label("快捷键I: UIManager.Instance.Open(\"DialogUI\")");
+        GUILayout.Space(10);
+        GUILayout.Label("快捷键O: UIManager.Instance.Close(\"DialogUI\")");
+        GUILayout.Space(10);
+        GUILayout.Label("快捷键P: 切换UIRoot");
         GUILayout.EndHorizontal();
     }
 

@@ -92,7 +92,7 @@ namespace UIFramework
             this.Transform = this.GameObject.transform;
             this.ChildParentNode = this.Transform.FindTransform("ChildParentNode");
 
-            UIManager.Instance.SetUIParent(this.Transform, this.UIContext.UIData.UIType);
+            UIManager.Instance.SetUIParent(this.Transform, this.UIContext.UIData.UIType, false);
 
             if (uiContext.UIData.IsChildUI)
             {
