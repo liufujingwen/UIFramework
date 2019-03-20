@@ -106,7 +106,7 @@ namespace UIFramework
                 else
                     await closeUI.DisableAsync();
 
-                UIManager.Instance.RemoveUI(uiName);
+                UIManager.Instance.Remove(uiName);
             }
 
             //释放Mask
@@ -120,15 +120,6 @@ namespace UIFramework
         /// <param name="uiName">UI名字</param>
         public void Remove(string uiName)
         {
-            if (uiList.Count > 0)
-            {
-                for (int i = 0; i < uiList.Count; i++)
-                {
-                    string tempUIName = uiList[i];
-                    if (uiName == tempUIName)
-                        UIManager.Instance.RemoveUI(uiName);
-                }
-            }
             uiList.Remove(uiName);
         }
 
@@ -142,7 +133,7 @@ namespace UIFramework
                 for (int i = 0; i < uiList.Count; i++)
                 {
                     string tempUIName = uiList[i];
-                    UIManager.Instance.RemoveUI(tempUIName);
+                    UIManager.Instance.Remove(tempUIName);
                 }
             }
             uiList.Clear();

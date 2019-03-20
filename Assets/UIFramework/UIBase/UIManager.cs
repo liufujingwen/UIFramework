@@ -12,7 +12,7 @@ namespace UIFramework
     /// </summary>
     public class UIManager : Singleton<UIManager>
     {
-        //所有UI必须注册后才能创建
+        //所有一级UI必须注册后才能创建
         private Dictionary<string, UIData> uiRegisterDic = new Dictionary<string, UIData>();
         //保存子UI信息
         private Dictionary<string, UIData> uiChildRegisterDic = new Dictionary<string, UIData>();
@@ -362,41 +362,7 @@ namespace UIFramework
             transform.transform.localRotation = Quaternion.identity;
         }
 
-        /// <summary>
-        /// 通过名字删除UI
-        /// </summary>
-        /// <param name="uiName">UI名字</param>
-        public void RemoveUI(string uiName)
-        {
-            for (int i = 0, max = uiList.Count; i < max; i++)
-            {
-                UIContex tempUIContext = uiList[i];
-                if (tempUIContext != null && tempUIContext.UIData.UIName == uiName)
-                {
-                    uiList.RemoveAt(i);
-
-                    //子UI一律销毁
-                    if (tempUIContext.UIData.UIType == UIType.Child || tempUIContext.UIData.UICloseType == UICloseType.Destroy)
-                    {
-                        tempUIContext.TCS = null;
-                        if (tempUIContext.UI != null && tempUIContext.UI.UIState != UIStateType.Destroy)
-                            tempUIContext.UI.Destroy();
-                    }
-                    else
-                    {
-                        //UI不销毁，直接回池
-                        if (tempUIContext.UI.Transform)
-                            tempUIContext.UI.Transform.SetParent(poolCanvas, false);
-
-                        GameUI gameUI = tempUIContext.UI as GameUI;
-                        gameUI?.InPool();
-                        poolDic.Add(tempUIContext.UIData.UIName, tempUIContext);
-                    }
-
-                    break;
-                }
-            }
-        }
+        
 
         /// <summary>
         /// 通过名字查找UI
@@ -520,26 +486,6 @@ namespace UIFramework
         }
 
         /// <summary>
-        /// 删除指定名字的UI
-        /// </summary>
-        /// <param name="uiName">UI名字</param>
-        public void Remove(string uiName)
-        {
-            UIData uiData = FindUIData(uiName);
-            if (uiData == null)
-            {
-                Debug.LogError($"Remove的UI:{uiName}未注册");
-                return;
-            }
-
-            IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiData.UIType, out uiContainer))
-            {
-                uiContainer.Remove(uiName);
-            }
-        }
-
-        /// <summary>
         /// 关闭栈顶界面
         /// </summary>
         /// <param name="uiType">ui类型</param>
@@ -550,6 +496,47 @@ namespace UIFramework
             {
                 if (uiContainer is UIStackContainer)
                     (uiContainer as UIStackContainer).Pop();
+            }
+        }
+
+        /// <summary>
+        /// 通过名字删除UI
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        public void Remove(string uiName)
+        {
+            for (int i = 0, max = uiList.Count; i < max; i++)
+            {
+                UIContex tempUIContext = uiList[i];
+                if (tempUIContext != null && tempUIContext.UIData.UIName == uiName)
+                {
+                    //清除显示容器数据
+                    IUIContainer uiContainer = null;
+                    if (showDic.TryGetValue(tempUIContext.UIData.UIType, out uiContainer))
+                        uiContainer.Remove(uiName);
+
+                    uiList.RemoveAt(i);
+
+                    //子UI一律销毁
+                    if (tempUIContext.UIData.UIType == UIType.Child || tempUIContext.UIData.UICloseType == UICloseType.Destroy)
+                    {
+                        tempUIContext.TCS = null;
+                        if (tempUIContext.UI != null && tempUIContext.UI.UIState != UIStateType.Destroy)
+                            tempUIContext.UI.Destroy();
+                    }
+                    else
+                    {
+                        //UI不销毁，直接回池
+                        if (tempUIContext.UI.Transform)
+                            tempUIContext.UI.Transform.SetParent(poolCanvas, false);
+
+                        GameUI gameUI = tempUIContext.UI as GameUI;
+                        gameUI?.InPool();
+                        poolDic.Add(tempUIContext.UIData.UIName, tempUIContext);
+                    }
+
+                    break;
+                }
             }
         }
 

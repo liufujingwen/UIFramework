@@ -9,7 +9,7 @@ namespace UIFramework
     /// <summary>
     /// 子UI管理器
     /// </summary>
-    public class ChildUIContainer : IUIContainer
+    public class UIChildContainer : IUIContainer
     {
         //保存已加载的子UI
         private Dictionary<string, ChildUI> childDic = new Dictionary<string, ChildUI>();
@@ -112,7 +112,7 @@ namespace UIFramework
             }
 
             childDic?.Remove(uiName);
-            UIManager.Instance.RemoveUI(uiName);
+            UIManager.Instance.Remove(uiName);
         }
 
         //删除所有子UI
@@ -124,7 +124,7 @@ namespace UIFramework
                 foreach (var kv in childDic)
                 {
                     string uiName = kv.Value.UIContext.UIData.UIName;
-                    UIManager.Instance.RemoveUI(uiName);
+                    UIManager.Instance.Remove(uiName);
                 }
                 childDic.Clear();
             }

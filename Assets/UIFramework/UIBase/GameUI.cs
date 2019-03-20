@@ -8,7 +8,7 @@ namespace UIFramework
     public class GameUI : UI
     {
         //保存子UI
-        private ChildUIContainer childUIContainer = new ChildUIContainer();
+        private UIChildContainer childUIContainer = new UIChildContainer();
 
         /// <summary>
         /// 等待所有动画播放完成

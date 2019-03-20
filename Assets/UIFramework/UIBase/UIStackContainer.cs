@@ -144,7 +144,7 @@ namespace UIFramework
 
                     //栈底没有才能移除UI(循环栈)
                     if (!contains)
-                        UIManager.Instance.RemoveUI(curUIName);
+                        UIManager.Instance.Remove(curUIName);
                 }
             }
 
@@ -172,17 +172,6 @@ namespace UIFramework
         /// <param name="uiName">UI名字</param>
         public void Remove(string uiName)
         {
-            List<string> uiList = showStack.GetList();
-            if (uiList.Count > 0)
-            {
-                for (int i = 0; i < uiList.Count; i++)
-                {
-                    string tempUIName = uiList[i];
-                    if (uiName == tempUIName)
-                        UIManager.Instance.RemoveUI(uiName);
-                }
-            }
-
             showStack.Remove(uiName);
         }
 
@@ -196,13 +185,13 @@ namespace UIFramework
                 for (int i = 0; i < uiList.Count; i++)
                 {
                     string tempUIName = uiList[i];
-                    UIManager.Instance.RemoveUI(tempUIName);
+                    UIManager.Instance.Remove(tempUIName);
                 }
             }
 
             closingAll = false;
 
-            uiList.Clear();
+            showStack.Clear();
             pushing = false;
             poping = false;
         }
