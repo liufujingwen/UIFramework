@@ -11,12 +11,12 @@ namespace UIFramework
 {
     public abstract class UIProxy : IBaseEventListener
     {
-        public void SetContext(UIContex uiContext)
+        public void SetContext(UIContext uiContext)
         {
             this.UIContext = uiContext;
         }
 
-        public UIContex UIContext;
+        public UIContext UIContext;
 
         public abstract void OnAwake();
 

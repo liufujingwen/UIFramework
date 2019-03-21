@@ -11,7 +11,7 @@ namespace UIFramework
         static Action<string> RemoveAction = null;
         static Func<string, UILuaProxy, ILuaUI> NewFunc = null;
 
-        public UILuaProxy(UIContex uiContext)
+        public UILuaProxy(UIContext uiContext)
         {
             this.SetContext(uiContext);
             if (NewFunc == null)

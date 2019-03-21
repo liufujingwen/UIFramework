@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace UIFramework
 {
-    public class UIContex
+    public class UIContext
     {
         /// <summary>
         /// UI数据

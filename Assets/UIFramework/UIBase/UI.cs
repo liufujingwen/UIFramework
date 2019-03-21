@@ -68,7 +68,7 @@ namespace UIFramework
 
     public abstract class UI
     {
-        public UIContex UIContext = null;
+        public UIContext UIContext = null;
         public GameObject GameObject = null;
         public Transform Transform = null;
         public Transform ChildParentNode = null;
@@ -84,7 +84,7 @@ namespace UIFramework
         //当前是否播放动画
         protected TaskCompletionSource<bool> IsPlayingAniamtionTask = null;
 
-        public void SetContext(GameObject gameObject, UIContex uiContext)
+        public void SetContext(GameObject gameObject, UIContext uiContext)
         {
             this.UIContext = uiContext;
             this.GameObject = gameObject;

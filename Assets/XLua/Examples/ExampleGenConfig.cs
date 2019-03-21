@@ -68,7 +68,7 @@ public static class ExampleGenConfig
                 typeof(UnityEngine.Events.UnityAction),
                 typeof(System.Collections.IEnumerator),
                 typeof(UIFramework.ILuaUI),
-                typeof(Func<string,UIFramework.UIContex,UIFramework.ILuaUI>)
+                typeof(Func<string,UIFramework.UIContext,UIFramework.ILuaUI>)
             };
 
     //黑名单

@@ -17,9 +17,9 @@ namespace UIFramework
         //保存子UI信息
         private Dictionary<string, UIData> uiChildRegisterDic = new Dictionary<string, UIData>();
         //所有加载的UI、子UI
-        private List<UIContex> uiList = new List<UIContex>();
+        private List<UIContext> uiList = new List<UIContext>();
         //保存所有不销毁的UI,不包括子UI
-        private Dictionary<string, UIContex> poolDic = new Dictionary<string, UIContex>();
+        private Dictionary<string, UIContext> poolDic = new Dictionary<string, UIContext>();
         //C#的UI逻辑Type
         private Dictionary<string, Type> uiTypeDic = new Dictionary<string, Type>();
 
@@ -125,7 +125,7 @@ namespace UIFramework
             //改变ui的父节点
             for (int i = 0; i < uiList.Count; i++)
             {
-                UIContex uiContex = uiList[i];
+                UIContext uiContex = uiList[i];
                 if (uiContex != null && uiContex.UI != null && uiContex.UI.Transform != null)
                     SetUIParent(uiContex.UI.Transform, uiContex.UIData.UIType, true);
             }
@@ -259,7 +259,7 @@ namespace UIFramework
         /// <returns></returns>
         private Task LoadUI(string uiName)
         {
-            UIContex tempUIContext = FindUIContext(uiName);
+            UIContext tempUIContext = FindUIContext(uiName);
 
             if (tempUIContext != null)
             {
@@ -286,7 +286,7 @@ namespace UIFramework
 
                 if (uiData != null)
                 {
-                    tempUIContext = new UIContex();
+                    tempUIContext = new UIContext();
                     tempUIContext.UIData = uiData;
                     tempUIContext.TCS = new TaskCompletionSource<bool>();
                     uiList.Add(tempUIContext);
@@ -411,7 +411,7 @@ namespace UIFramework
         /// <returns></returns>
         public UI FindUI(string uiName)
         {
-            UIContex tempUIContext = FindUIContext(uiName);
+            UIContext tempUIContext = FindUIContext(uiName);
             if (tempUIContext != null)
                 return tempUIContext.UI;
             return null;
@@ -422,11 +422,11 @@ namespace UIFramework
         /// </summary>
         /// <param name="uiName">UI名字</param>
         /// <returns></returns>
-        private UIContex FindUIContext(string uiName)
+        private UIContext FindUIContext(string uiName)
         {
             for (int i = 0; i < uiList.Count; i++)
             {
-                UIContex tempUIContext = uiList[i];
+                UIContext tempUIContext = uiList[i];
                 if (tempUIContext != null && tempUIContext.UIData.UIName == uiName)
                     return tempUIContext;
             }
@@ -454,7 +454,7 @@ namespace UIFramework
 
             for (int i = 0, max = uiList.Count; i < max; i++)
             {
-                UIContex tempUIContext = uiList[i];
+                UIContext tempUIContext = uiList[i];
                 if (tempUIContext != null && tempUIContext.TCS != null && tempUIContext.TCS.Task.Result)
                 {
                     if (tempUIContext.UI.GameObject == animator.gameObject)
@@ -524,7 +524,7 @@ namespace UIFramework
 
                 if (callback != null)
                 {
-                    UIContex uiContext = FindUIContext(uiName);
+                    UIContext uiContext = FindUIContext(uiName);
                     callback.Invoke(uiContext.UI);
                 }
             }
@@ -636,7 +636,7 @@ namespace UIFramework
         /// <param name="uiName">UI名字</param>
         public void Close(string uiName)
         {
-            UIContex uiContext = FindUIContext(uiName);
+            UIContext uiContext = FindUIContext(uiName);
             if (uiContext != null)
             {
                 IUIContainer uiContainer = null;
@@ -688,7 +688,7 @@ namespace UIFramework
         {
             for (int i = 0, max = uiList.Count; i < max; i++)
             {
-                UIContex tempUIContext = uiList[i];
+                UIContext tempUIContext = uiList[i];
                 if (tempUIContext != null && tempUIContext.UIData.UIName == uiName)
                 {
                     //清除显示容器数据
