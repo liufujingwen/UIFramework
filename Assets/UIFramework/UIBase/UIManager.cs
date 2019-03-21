@@ -596,14 +596,9 @@ namespace UIFramework
         /// </summary>
         /// <param name="uiName">UI名字</param>
         /// <param name="args">传递到0nStart的参数</param>
-        public void PopThenPush(string uiName, params object[] args)
+        public void PopThenOpen(string uiName, params object[] args)
         {
-            IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(UIType.Normal, out uiContainer))
-            {
-                UIStackContainer uiStackContainer = uiContainer as UIStackContainer;
-                uiStackContainer.PopThenPush(uiName, args);
-            }
+            PopThenOpen(UIType.Normal, uiName, args);
         }
 
         /// <summary>
@@ -631,7 +626,7 @@ namespace UIFramework
             {
                 UIStackContainer uiStackContainer = uiContainer as UIStackContainer;
                 await uiStackContainer.PopAsync();
-                Open(uiName,args);
+                Open(uiName, args);
             }
         }
 
@@ -641,17 +636,14 @@ namespace UIFramework
         /// <param name="uiName">UI名字</param>
         public void Close(string uiName)
         {
-            UIData uiData = FindUIData(uiName);
-            if (uiData == null)
+            UIContex uiContext = FindUIContext(uiName);
+            if (uiContext != null)
             {
-                Debug.LogError($"Close的UI:{uiName}未注册");
-                return;
-            }
-
-            IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiData.UIType, out uiContainer))
-            {
-                uiContainer?.Close(uiName);
+                IUIContainer uiContainer = null;
+                if (showDic.TryGetValue(uiContext.UIData.UIType, out uiContainer))
+                {
+                    uiContainer?.Close(uiName);
+                }
             }
         }
 
