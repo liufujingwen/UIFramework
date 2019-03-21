@@ -623,11 +623,7 @@ namespace UIFramework
         {
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(uiType, out uiContainer))
-            {
-                UIStackContainer uiStackContainer = uiContainer as UIStackContainer;
-                await uiStackContainer.PopAsync();
-                Open(uiName, args);
-            }
+                await uiContainer?.PopThenOpenAsync(uiName, args);
         }
 
         /// <summary>

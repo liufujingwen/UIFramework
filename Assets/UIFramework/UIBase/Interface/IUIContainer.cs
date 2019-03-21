@@ -14,6 +14,7 @@ namespace UIFramework
         Task CloseAsync(string uiName);
         void Pop();
         Task PopAsync();
+        Task PopThenOpenAsync(string uiName, params object[] args);
         void Remove(string uiName);
         void Clear();
     }

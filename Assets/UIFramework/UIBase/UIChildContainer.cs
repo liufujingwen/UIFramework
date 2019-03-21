@@ -228,5 +228,11 @@ namespace UIFramework
             UnityEngine.Debug.LogError("子UI管理器不能使用PopAsync");
             return null;
         }
+
+        public Task PopThenOpenAsync(string uiName, params object[] args)
+        {
+            UnityEngine.Debug.LogErrorFormat("子UI管理器不能使用PopThenOpenAsync");
+            return null;
+        }
     }
 }

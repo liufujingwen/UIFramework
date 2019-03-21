@@ -175,6 +175,71 @@ namespace UIFramework
         }
 
         /// <summary>
+        /// 最上面UI先退栈，并打开指定名字的UI
+        /// </summary>
+        /// <param name="uiName">打开的UI名字</param>
+        /// <param name="args">传递到0nStart的参数</param>
+        public async Task PopThenOpenAsync(string uiName, params object[] args)
+        {
+            if (UIManager.Instance.ClosingAll)
+                return;
+
+            if (closingAll)
+                return;
+
+            if (pushing || poping)
+                return;
+
+            //保证播放动画期间不能操作
+            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
+                MaskManager.Instance.SetActive(true);
+
+            //先加载需要展示的UI
+            Task loadTask = UIManager.Instance.LoadUIAsync(uiName);
+            {
+                //容错处理，UI可能不存在
+                if (loadTask == null)
+                {
+                    pushing = false;
+                    if ((this.UIType & UIManager.IgnoreMaskType) == 0)
+                        MaskManager.Instance.SetActive(false);
+                }
+                await loadTask;
+            }
+
+            poping = true;
+
+            //最上层UI退栈
+            if (showStack.Count != 0)
+            {
+                string curUiName = showStack.Pop();
+                GameUI curUI = UIManager.Instance.FindUI(curUiName) as GameUI;
+                if (curUI != null)
+                {
+                    bool contains = showStack.Contains(curUiName);
+
+                    //栈底没有才能Destroy(循环栈)
+                    if (contains || curUI.UIContext.UIData.UICloseType != UICloseType.Destroy)
+                        await curUI.DisableAsync();
+                    else
+                        await curUI.DestroyAsync();
+
+                    //栈底没有才能移除UI(循环栈)
+                    if (!contains)
+                        UIManager.Instance.Remove(curUiName);
+                }
+            }
+
+            poping = false;
+
+            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
+                MaskManager.Instance.SetActive(false);
+
+            //打开新UI
+            UIManager.Instance.Open(uiName, args);
+        }
+
+        /// <summary>
         /// 删除指定名字的UI
         /// </summary>
         /// <param name="uiName">UI名字</param>
