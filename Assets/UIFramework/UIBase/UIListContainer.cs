@@ -76,6 +76,12 @@ namespace UIFramework
             UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用Pop", this.UIType);
         }
 
+        public Task PopAsync()
+        {
+            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用PopAsync", this.UIType);
+            return null;
+        }
+
         /// <summary>
         /// 关闭指定名字的UI
         /// </summary>

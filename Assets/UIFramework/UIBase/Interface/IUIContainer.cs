@@ -9,8 +9,11 @@ namespace UIFramework
     public interface IUIContainer
     {
         void Open(string uiName, params object[] args);
+        Task OpenAsync(string uiName, params object[] args);
         void Close(string uiName);
+        Task CloseAsync(string uiName);
         void Pop();
+        Task PopAsync();
         void Remove(string uiName);
         void Clear();
     }

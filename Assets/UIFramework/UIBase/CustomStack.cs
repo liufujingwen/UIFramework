@@ -60,5 +60,18 @@ namespace UIFramework
                     list.RemoveAt(i);
             }
         }
+
+        public void RemoveOne(T value)
+        {
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                T temp = list[i];
+                if (temp.Equals(value))
+                {
+                    list.RemoveAt(i);
+                    break;
+                }
+            }
+        }
     }
 }

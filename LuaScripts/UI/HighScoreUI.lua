@@ -8,7 +8,7 @@ end
 
 function HighScoreUI:OnAwake()
 
-    Debug.Log("HighScoreUI OnAwake" .. self.Name)
+    Debug.Log("Lua HighScoreUI OnAwake" .. self.Name)
     local BackButton = self.GameObject:FindGameObject("BackButton")
     self.super.RegisterListener(self, "BackButton", self.OnClickExitBtn)
     self.super.RegisterListener(self, BackButton, self.OnClickExitBtn)
@@ -22,19 +22,19 @@ function HighScoreUI:OnClickExitBtn(eventData)
 end
 
 function HighScoreUI:OnStart(args)
-    Debug.Log("HighScoreUI OnStart")
+    Debug.Log("Lua HighScoreUI OnStart")
 end
 
 function HighScoreUI:OnEnable()
-    Debug.Log("HighScoreUI OnEnable")
+    Debug.Log("Lua HighScoreUI OnEnable")
 end
 
 function HighScoreUI:OnDisable()
-    Debug.Log("HighScoreUI OnDisable")
+    Debug.Log("Lua HighScoreUI OnDisable")
 end
 
 function HighScoreUI:OnDestroy()
-    Debug.Log("HighScoreUI OnDestroy")
+    Debug.Log("Lua HighScoreUI OnDestroy")
 end
 
 function HighScoreUI:OnNotifiy(evt, ...)

@@ -54,7 +54,6 @@ namespace UIFramework
         /// </summary>
         public bool ClosingAll = false;
 
-
         public void Init()
         {
             InitTypes();
@@ -405,8 +404,6 @@ namespace UIFramework
             }
         }
 
-
-
         /// <summary>
         /// 通过名字查找UI
         /// </summary>
@@ -419,7 +416,6 @@ namespace UIFramework
                 return tempUIContext.UI;
             return null;
         }
-
 
         /// <summary>
         /// 通过名字查找UIData
@@ -473,7 +469,11 @@ namespace UIFramework
                 tempUI.OnNotifyAnimationState();
         }
 
-
+        /// <summary>
+        /// 打开UI
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        /// <param name="args">传递到0nStart的参数</param>
         public void Open(string uiName, params object[] args)
         {
             UIData uiData = FindUIData(uiName);
@@ -491,6 +491,46 @@ namespace UIFramework
         }
 
         /// <summary>
+        /// 打开UI，完成后执行回调
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        /// <param name="callback">回调</param>
+        /// <param name="args">传递到0nStart的参数</param>
+        public void OpenWithCallback(string uiName, Action<UI> callback, params object[] args)
+        {
+            OpenWithCallbackAsync(uiName, callback, args).ConfigureAwait(true);
+        }
+
+        /// <summary>
+        /// 打开UI，完成后执行回调,返回Task
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        /// <param name="callback">回调</param>
+        /// <param name="args">传递到0nStart的参数</param>
+        /// <returns>Task</returns>
+        public async Task OpenWithCallbackAsync(string uiName, Action<UI> callback, params object[] args)
+        {
+            UIData uiData = FindUIData(uiName);
+            if (uiData == null)
+            {
+                Debug.LogError($"OpenWithCallbackAsync {uiName}未注册");
+                return;
+            }
+
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(uiData.UIType, out uiContainer))
+            {
+                await uiContainer?.OpenAsync(uiName, args);
+
+                if (callback != null)
+                {
+                    UIContex uiContext = FindUIContext(uiName);
+                    callback.Invoke(uiContext.UI);
+                }
+            }
+        }
+
+        /// <summary>
         /// 关闭Normal栈顶界面(对noraml出栈的会计方式，不需要传uitype)
         /// </summary>
         /// <param name="uiType">ui类型</param>
@@ -500,6 +540,98 @@ namespace UIFramework
             if (showDic.TryGetValue(UIType.Normal, out uiContainer))
             {
                 uiContainer?.Pop();
+            }
+        }
+
+        /// <summary>
+        /// 关闭栈顶界面
+        /// </summary>
+        /// <param name="uiType">ui类型</param>
+        public void Pop(UIType uiType)
+        {
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(uiType, out uiContainer))
+            {
+                uiContainer?.Pop();
+            }
+        }
+
+        /// <summary>
+        /// Normal类型的UI退栈并执行回调
+        /// </summary>
+        /// <param name="action">回调</param>
+        public void PopWithCallback(Action action)
+        {
+            PopWithCallback(UIType.Normal, action);
+        }
+
+        /// <summary>
+        /// UI退栈并执行回调
+        /// </summary>
+        /// <param name="uiType">UI类型</param>
+        /// <param name="action">回调</param>
+        public void PopWithCallback(UIType uiType, Action action)
+        {
+            PopWithCallbackAsync(uiType, action).ConfigureAwait(true);
+        }
+
+        /// <summary>
+        /// UI退栈并执行回调,返回Task
+        /// </summary>
+        /// <param name="uiType">UI类型</param>
+        /// <param name="action">回调</param>
+        /// <returns>Task</returns>
+        public async Task PopWithCallbackAsync(UIType uiType, Action action)
+        {
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(uiType, out uiContainer))
+            {
+                await uiContainer?.PopAsync();
+                action?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// 针对Normal类型的管理，关闭上一个界面，然后打开下一个界面（无缝切换）
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        /// <param name="args">传递到0nStart的参数</param>
+        public void PopThenPush(string uiName, params object[] args)
+        {
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(UIType.Normal, out uiContainer))
+            {
+                UIStackContainer uiStackContainer = uiContainer as UIStackContainer;
+                uiStackContainer.PopThenPush(uiName, args);
+            }
+        }
+
+        /// <summary>
+        /// 指定类型UI退栈后，并打开指定名字的UI
+        /// </summary>
+        /// <param name="uiType">UI类型</param>
+        /// <param name="uiName">打开的UI名字</param>
+        /// <param name="args">传递到0nStart的参数</param>
+        public void PopThenOpen(UIType uiType, string uiName, params object[] args)
+        {
+            PopThenOpenAsync(uiType, uiName, args).ConfigureAwait(true);
+        }
+
+        /// <summary>
+        /// 指定类型UI退栈后，并打开指定名字的UI
+        /// </summary>
+        /// <param name="uiType">UI类型</param>
+        /// <param name="uiName">打开的UI名字</param>
+        /// <param name="args">传递到0nStart的参数</param>
+        /// <returns>Task</returns>
+        public async Task PopThenOpenAsync(UIType uiType, string uiName, params object[] args)
+        {
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(uiType, out uiContainer))
+            {
+                UIStackContainer uiStackContainer = uiContainer as UIStackContainer;
+                await uiStackContainer.PopAsync();
+                Open(uiName,args);
             }
         }
 
@@ -524,15 +656,35 @@ namespace UIFramework
         }
 
         /// <summary>
-        /// 关闭栈顶界面
+        /// 关闭UI后执行一个回调
         /// </summary>
-        /// <param name="uiType">ui类型</param>
-        public void Pop(UIType uiType)
+        /// <param name="uiName">UI名字</param>
+        /// <param name="callback">关闭回调</param>
+        public void CloseWithCallback(string uiName, Action callback)
         {
-            IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiType, out uiContainer))
+            CloseWithCallbackAsync(uiName, callback).ConfigureAwait(true);
+        }
+
+        /// <summary>
+        /// 关闭UI后执行一个回调
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        /// <param name="callback">关闭回调</param>
+        /// <returns>Task</returns>
+        private async Task CloseWithCallbackAsync(string uiName, Action callback)
+        {
+            UIData uiData = FindUIData(uiName);
+            if (uiData == null)
             {
-                uiContainer?.Pop();
+                Debug.LogError($"Close的UI:{uiName}未注册");
+                return;
+            }
+
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(uiData.UIType, out uiContainer))
+            {
+                await uiContainer?.CloseAsync(uiName);
+                callback?.Invoke();
             }
         }
 

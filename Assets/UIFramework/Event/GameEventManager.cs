@@ -18,7 +18,7 @@ namespace UIFramework
         /// </summary>
         /// <param name="evt">事件ID</param>
         /// <param name="action">事件回调</param>
-        public void RegistEvent(string evt, Action<string, object[]> action)
+        public void RegisterEvent(string evt, Action<string, object[]> action)
         {
             if (string.IsNullOrEmpty(evt) || action == null)
                 return;
@@ -38,7 +38,7 @@ namespace UIFramework
         /// 注册事件监听器
         /// </summary>
         /// <param name="listener">事件监听者</param>
-        public void RegistEvent(IBaseEventListener listener)
+        public void RegisterEvent(IBaseEventListener listener)
         {
             if (listener == null)
                 return;

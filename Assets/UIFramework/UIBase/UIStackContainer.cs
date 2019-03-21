@@ -41,15 +41,17 @@ namespace UIFramework
 
         public void Open(string uiName, params object[] args)
         {
-            if (UIManager.Instance.ClosingAll)
-                return;
-            if (closingAll)
-                return;
             OpenAsync(uiName, args).ConfigureAwait(true);
         }
 
         public async Task OpenAsync(string uiName, params object[] args)
         {
+            if (UIManager.Instance.ClosingAll)
+                return;
+
+            if (closingAll)
+                return;
+
             if (pushing)
                 return;
 
@@ -104,9 +106,43 @@ namespace UIFramework
             pushing = false;
         }
 
+        /// <summary>
+        /// 上一个UI退栈，并打开新的UI
+        /// </summary>
+        /// <param name="uiName">ui名字</param>
+        /// <param name="args">参数</param>
+        public void PopThenPush(string uiName, params object[] args)
+        {
+            PopThenPushAsync(uiName, args).ConfigureAwait(true);
+        }
+
+        public async Task PopThenPushAsync(string uiName, params object[] args)
+        {
+            if (UIManager.Instance.ClosingAll)
+                return;
+            if (closingAll)
+                return;
+
+            string preUIName = showStack.Peek();
+            await OpenAsync(uiName, args);
+            if (!string.IsNullOrEmpty(preUIName))
+            {
+                showStack.RemoveOne(preUIName);
+                //栈底不存在UI接着直接移除
+                if (!showStack.Contains(preUIName))
+                    UIManager.Instance.Remove(preUIName);
+            }
+        }
+
         public void Close(string uiName)
         {
             UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用Close", this.UIType);
+        }
+
+        public Task CloseAsync(string uiName)
+        {
+            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用CloseAsync", this.UIType);
+            return null;
         }
 
         public void Pop()

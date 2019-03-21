@@ -70,6 +70,10 @@ public class Main : MonoBehaviour
         {
             UIManager.Instance.InitUIRoot(UIResType.Resorces);
         }
+        else if (Input.GetKeyUp(KeyCode.L))
+        {
+            UIManager.Instance.PopThenPush("HighScoreUI");
+        }
     }
 
     private void OnGUI()

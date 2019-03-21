@@ -244,7 +244,7 @@ namespace UIFramework
                 this.UIState = UIStateType.Enable;
                 this.GameObject.SetActive(true);
                 this.OnEnable();
-                GameEventManager.Instance.RegistEvent(UIProxy);
+                GameEventManager.Instance.RegisterEvent(UIProxy);
             }
         }
 
