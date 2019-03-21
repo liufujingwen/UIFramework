@@ -52,11 +52,10 @@ namespace UIFramework
             if (closingAll)
                 return;
 
-            if (pushing)
+            if (pushing || poping)
                 return;
 
             pushing = true;
-            poping = false;
 
             await MaskManager.Instance.LoadMask();
 
@@ -125,11 +124,10 @@ namespace UIFramework
 
         public async Task PopAsync()
         {
-            if (poping)
+            if (poping || pushing)
                 return;
 
             poping = true;
-            pushing = false;
 
             await MaskManager.Instance.LoadMask();
 
