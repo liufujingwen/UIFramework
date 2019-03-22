@@ -28,6 +28,9 @@ end
 function LuaUI:OnNotifiy(evt, ...)
 end
 
+function LuaUI:OnGetEvents()
+end
+
 --注册点击事件
 function LuaUI:RegisterListener(button, handle, clear)
 

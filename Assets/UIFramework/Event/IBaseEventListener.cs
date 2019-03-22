@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace UIFramework
+
+public interface IBaseEventListener
 {
-    public interface IBaseEventListener
-    {
-        void OnNotifiy(string evt, params object[] args);
-    }
+    string[] OnGetEvents();
+    bool HasEvents();
+    bool Contains(string evt);
+    void OnNotifiy(string evt, params object[] args);
 }
 

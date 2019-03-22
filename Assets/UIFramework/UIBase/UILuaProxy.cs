@@ -24,6 +24,11 @@ namespace UIFramework
                 luaUI = NewFunc(this.UIContext.UIData.UIName, this);
         }
 
+        public override string[] OnGetEvents()
+        {
+            return luaUI.OnGetEvents();
+        }
+
         public override void OnAwake()
         {
             luaUI?.OnAwake();

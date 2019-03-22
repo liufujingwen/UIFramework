@@ -9,7 +9,7 @@ using static UGUIEventListener;
 
 namespace UIFramework
 {
-    public abstract class UIProxy : IBaseEventListener
+    public abstract class UIProxy : EventListener
     {
         public void SetContext(UIContext uiContext)
         {
@@ -17,6 +17,11 @@ namespace UIFramework
         }
 
         public UIContext UIContext;
+
+        public override string[] OnGetEvents()
+        {
+            return null;
+        }
 
         public abstract void OnAwake();
 
@@ -89,7 +94,5 @@ namespace UIFramework
 
             gameUI.CloseChildUI(childUIName);
         }
-
-        public abstract void OnNotifiy(string evt, params object[] args);
     }
 }

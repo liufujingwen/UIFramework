@@ -9,6 +9,8 @@ namespace UIFramework
 {
     public interface ILuaUI
     {
+        string[] OnGetEvents();
+
         void OnAwake();
 
         void OnStart(params object[] args);

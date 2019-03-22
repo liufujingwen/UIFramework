@@ -38,9 +38,6 @@ namespace UIFramework
 
         public override void OnNotifiy(string evt, params object[] args)
         {
-
         }
-
-        
     }
 }

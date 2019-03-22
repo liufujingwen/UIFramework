@@ -3,21 +3,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using XLua;
 
-namespace UIFramework
+public class XLuaEventProxy : EventListener
 {
-    public class LuaEventProxy : IBaseEventListener
+    LuaTable luaTable = null;
+    Func<string[]> OnGetEventsFunc = null;
+    Action<string, object[]> OnNotifyActoin = null;
+
+    public XLuaEventProxy(LuaTable luaTable)
     {
-        Action<string, object[]> luaAction = null;
+        if (luaTable == null)
+            return;
 
-        public LuaEventProxy(Action<string, object[]> action)
-        {
-            this.luaAction = action;
-        }
+        this.luaTable = luaTable;
+        this.OnGetEventsFunc = luaTable.Get<Func<string[]>>("OnGetEvents");
+        this.OnNotifyActoin = luaTable.Get<Action<string, object[]>>("OnNotifiy");
+    }
 
-        public void OnNotifiy(string evt, params object[] args)
-        {
-            this.luaAction?.Invoke(evt, args);
-        }
+    public override string[] OnGetEvents()
+    {
+        return OnGetEventsFunc?.Invoke();
+    }
+
+    public override void OnNotifiy(string evt, params object[] args)
+    {
+        OnNotifyActoin?.Invoke(evt, args);
     }
 }
+
+
