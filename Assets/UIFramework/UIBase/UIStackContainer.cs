@@ -218,15 +218,22 @@ namespace UIFramework
                 {
                     bool contains = showStack.Contains(curUiName);
 
-                    //栈底没有才能Destroy(循环栈)
-                    if (contains || curUI.UIContext.UIData.UICloseType != UICloseType.Destroy)
+                    //栈底没有才能Destroy(循环栈),且不是打开的最新UI
+                    if (contains || curUI.UIContext.UIData.UICloseType != UICloseType.Destroy || uiName == curUiName)
                         await curUI.DisableAsync();
                     else
                         await curUI.DestroyAsync();
 
-                    //栈底没有才能移除UI(循环栈)
-                    if (!contains)
+                    //栈底没有才能移除UI(循环栈),且不是需要打开的UI
+                    if (!contains && uiName != curUiName)
                         UIManager.Instance.Remove(curUiName);
+
+                    //保证打开的UI能执行OnStart
+                    if (uiName == curUiName)
+                    {
+                        if (curUI.UIState > UIStateType.Awake)
+                            curUI.UIState = UIStateType.Awake;
+                    }
                 }
             }
 
@@ -261,68 +268,52 @@ namespace UIFramework
 
             string topName = showStack.Peek();
             //需要打开的新UI刚好在栈顶
-            if (topName == uiName)
+            //先加载需要展示的UI
+            Task loadTask = UIManager.Instance.LoadUIAsync(uiName);
             {
-                //除了栈顶UI，全部都删除
-                List<string> uiNameList = showStack.GetList();
-                for (int i = uiNameList.Count - 2; i >= 0; i--)
+                //容错处理，UI可能不存在
+                if (loadTask == null)
                 {
-                    string tempName = uiNameList[i];
-                    if (tempName != uiName)
-                        UIManager.Instance.Remove(tempName);
+                    pushing = false;
+                    if ((this.UIType & UIManager.IgnoreMaskType) == 0)
+                        MaskManager.Instance.SetActive(false);
                 }
-                showStack.Clear();
-                showStack.Push(uiName);
+                await loadTask;
             }
-            else
+
+            //最上层UI退栈
+            if (showStack.Count != 0)
             {
-                //先加载需要展示的UI
-                Task loadTask = UIManager.Instance.LoadUIAsync(uiName);
+                string curUiName = showStack.Pop();
+                GameUI curUI = UIManager.Instance.FindUI(curUiName) as GameUI;
+                if (curUI != null)
                 {
-                    //容错处理，UI可能不存在
-                    if (loadTask == null)
+                    //退栈UI如果等于新打开的UI,不能Destroy
+                    if (curUI.UIContext.UIData.UICloseType != UICloseType.Destroy || uiName == curUiName)
+                        await curUI.DisableAsync();
+                    else
+                        await curUI.DestroyAsync();
+
+                    if (uiName == curUiName)
                     {
-                        pushing = false;
-                        if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                            MaskManager.Instance.SetActive(false);
-                    }
-                    await loadTask;
-                }
-
-                poping = true;
-
-                //最上层UI退栈
-                if (showStack.Count != 0)
-                {
-                    string curUiName = showStack.Pop();
-                    GameUI curUI = UIManager.Instance.FindUI(curUiName) as GameUI;
-                    if (curUI != null)
-                    {
-                        bool contains = showStack.Contains(curUiName);
-
-                        //栈底没有才能Destroy(循环栈)
-                        if (contains || curUI.UIContext.UIData.UICloseType != UICloseType.Destroy)
-                            await curUI.DisableAsync();
-                        else
-                            await curUI.DestroyAsync();
-
-                        //栈底没有才能移除UI(循环栈)
-                        if (!contains)
-                            UIManager.Instance.Remove(curUiName);
+                        //确保新打开的UI还能执行OnStart
+                        if (curUI.UIState > UIStateType.Awake)
+                            curUI.UIState = UIStateType.Awake;
                     }
                 }
-
-                //栈底可能存在新打开的UI，所以不能全不删除,直接调用Clear也许会清掉已经加载的新UI(循环栈)
-                List<string> uiNameList = showStack.GetList();
-                for (int i = uiNameList.Count - 1; i >= 0; i--)
-                {
-                    string tempName = uiNameList[i];
-                    if (tempName != uiName)
-                        UIManager.Instance.Remove(tempName);
-                }
-                showStack.Clear();
-                poping = false;
             }
+
+            //栈底可能存在新打开的UI，所以不能全不删除,直接调用Clear也许会清掉已经加载的新UI(循环栈)
+            List<string> uiNameList = showStack.GetList();
+            for (int i = uiNameList.Count - 1; i >= 0; i--)
+            {
+                string tempName = uiNameList[i];
+                if (tempName != uiName)
+                    UIManager.Instance.Remove(tempName);
+            }
+            showStack.Clear();
+
+            poping = false;
 
             if ((this.UIType & UIManager.IgnoreMaskType) == 0)
                 MaskManager.Instance.SetActive(false);

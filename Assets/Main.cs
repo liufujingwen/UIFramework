@@ -72,7 +72,8 @@ public class Main : MonoBehaviour
         }
         else if (Input.GetKeyUp(KeyCode.L))
         {
-            UIManager.Instance.PopThenOpen("HighScoreUI");
+            //UIManager.Instance.PopThenOpen("HighScoreUI");
+            UIManager.Instance.PopThenOpen("MainMenuUI");
         }
     }
 
