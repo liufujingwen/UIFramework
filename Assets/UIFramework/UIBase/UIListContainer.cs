@@ -88,6 +88,12 @@ namespace UIFramework
             return null;
         }
 
+        public Task PopAllThenOpenAsync(string uiName, params object[] args)
+        {
+            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用PopAllThenOpenAsync", this.UIType);
+            return null;
+        }
+
         /// <summary>
         /// 关闭指定名字的UI
         /// </summary>

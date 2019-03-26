@@ -627,6 +627,41 @@ namespace UIFramework
         }
 
         /// <summary>
+        /// 针对Normal类型的管理，关闭栈中所有界面，然后打开下一个界面（无缝切换）
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        /// <param name="args">传递到0nStart的参数</param>
+        public void PopAllThenOpen(string uiName, params object[] args)
+        {
+            PopAllThenOpen(UIType.Normal, uiName, args);
+        }
+
+        /// <summary>
+        /// 关闭指定类型的栈所有界面，然后打开下一个界面（无缝切换）
+        /// </summary>
+        /// <param name="uiType">关闭的栈类型</param>
+        /// <param name="uiName">UI名字</param>
+        /// <param name="args">传递到0nStart的参数</param>
+        public void PopAllThenOpen(UIType uiType, string uiName, params object[] args)
+        {
+            PopAllThenOpenAsync(uiType, uiName, args).ConfigureAwait(true);
+        }
+
+        /// <summary>
+        /// 关闭指定类型的栈所有界面，然后打开下一个界面（无缝切换）
+        /// </summary>
+        /// <param name="uiType">关闭的栈类型</param>
+        /// <param name="uiName">UI名字</param>
+        /// <param name="args">传递到0nStart的参数</param>
+        /// <returns>Task</returns>
+        public async Task PopAllThenOpenAsync(UIType uiType, string uiName, params object[] args)
+        {
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(uiType, out uiContainer))
+                await uiContainer?.PopAllThenOpenAsync(uiName, args);
+        }
+
+        /// <summary>
         /// 关闭指定UI
         /// </summary>
         /// <param name="uiName">UI名字</param>
