@@ -485,9 +485,7 @@ namespace UIFramework
 
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(uiData.UIType, out uiContainer))
-            {
-                uiContainer?.Open(uiName, args);
-            }
+                uiContainer?.Open(uiName, null, args);
         }
 
         /// <summary>
@@ -498,18 +496,6 @@ namespace UIFramework
         /// <param name="args">传递到0nStart的参数</param>
         public void OpenWithCallback(string uiName, Action<UI> callback, params object[] args)
         {
-            OpenWithCallbackAsync(uiName, callback, args).ConfigureAwait(true);
-        }
-
-        /// <summary>
-        /// 打开UI，完成后执行回调,返回Task
-        /// </summary>
-        /// <param name="uiName">UI名字</param>
-        /// <param name="callback">回调</param>
-        /// <param name="args">传递到0nStart的参数</param>
-        /// <returns>Task</returns>
-        public async Task OpenWithCallbackAsync(string uiName, Action<UI> callback, params object[] args)
-        {
             UIData uiData = FindUIData(uiName);
             if (uiData == null)
             {
@@ -519,15 +505,7 @@ namespace UIFramework
 
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(uiData.UIType, out uiContainer))
-            {
-                await uiContainer?.OpenAsync(uiName, args);
-
-                if (callback != null)
-                {
-                    UIContext uiContext = FindUIContext(uiName);
-                    callback.Invoke(uiContext.UI);
-                }
-            }
+                uiContainer?.Open(uiName, callback, args);
         }
 
         /// <summary>
@@ -536,11 +514,7 @@ namespace UIFramework
         /// <param name="uiType">ui类型</param>
         public void Pop()
         {
-            IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(UIType.Normal, out uiContainer))
-            {
-                uiContainer?.Pop();
-            }
+            Pop(UIType.Normal);
         }
 
         /// <summary>
@@ -551,44 +525,28 @@ namespace UIFramework
         {
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(uiType, out uiContainer))
-            {
-                uiContainer?.Pop();
-            }
+                uiContainer?.Pop(null);
         }
 
         /// <summary>
         /// Normal类型的UI退栈并执行回调
         /// </summary>
-        /// <param name="action">回调</param>
-        public void PopWithCallback(Action action)
+        /// <param name="callback">回调</param>
+        public void PopWithCallback(Action callback)
         {
-            PopWithCallback(UIType.Normal, action);
+            PopWithCallback(UIType.Normal, callback);
         }
 
         /// <summary>
         /// UI退栈并执行回调
         /// </summary>
         /// <param name="uiType">UI类型</param>
-        /// <param name="action">回调</param>
-        public void PopWithCallback(UIType uiType, Action action)
-        {
-            PopWithCallbackAsync(uiType, action).ConfigureAwait(true);
-        }
-
-        /// <summary>
-        /// UI退栈并执行回调,返回Task
-        /// </summary>
-        /// <param name="uiType">UI类型</param>
-        /// <param name="action">回调</param>
-        /// <returns>Task</returns>
-        public async Task PopWithCallbackAsync(UIType uiType, Action action)
+        /// <param name="callback">回调</param>
+        public void PopWithCallback(UIType uiType, Action callback)
         {
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(uiType, out uiContainer))
-            {
-                await uiContainer?.PopAsync();
-                action?.Invoke();
-            }
+                uiContainer?.Pop(callback);
         }
 
         /// <summary>
@@ -609,21 +567,9 @@ namespace UIFramework
         /// <param name="args">传递到0nStart的参数</param>
         public void PopThenOpen(UIType uiType, string uiName, params object[] args)
         {
-            PopThenOpenAsync(uiType, uiName, args).ConfigureAwait(true);
-        }
-
-        /// <summary>
-        /// 指定类型UI退栈后，并打开指定名字的UI
-        /// </summary>
-        /// <param name="uiType">UI类型</param>
-        /// <param name="uiName">打开的UI名字</param>
-        /// <param name="args">传递到0nStart的参数</param>
-        /// <returns>Task</returns>
-        public async Task PopThenOpenAsync(UIType uiType, string uiName, params object[] args)
-        {
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(uiType, out uiContainer))
-                await uiContainer?.PopThenOpenAsync(uiName, args);
+                uiContainer?.PopThenOpen(uiName, args);
         }
 
         /// <summary>
@@ -644,21 +590,9 @@ namespace UIFramework
         /// <param name="args">传递到0nStart的参数</param>
         public void PopAllThenOpen(UIType uiType, string uiName, params object[] args)
         {
-            PopAllThenOpenAsync(uiType, uiName, args).ConfigureAwait(true);
-        }
-
-        /// <summary>
-        /// 关闭指定类型的栈所有界面，然后打开下一个界面（无缝切换）
-        /// </summary>
-        /// <param name="uiType">关闭的栈类型</param>
-        /// <param name="uiName">UI名字</param>
-        /// <param name="args">传递到0nStart的参数</param>
-        /// <returns>Task</returns>
-        public async Task PopAllThenOpenAsync(UIType uiType, string uiName, params object[] args)
-        {
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(uiType, out uiContainer))
-                await uiContainer?.PopAllThenOpenAsync(uiName, args);
+                uiContainer?.PopAllThenOpen(uiName, args);
         }
 
         /// <summary>
@@ -672,9 +606,7 @@ namespace UIFramework
             {
                 IUIContainer uiContainer = null;
                 if (showDic.TryGetValue(uiContext.UIData.UIType, out uiContainer))
-                {
-                    uiContainer?.Close(uiName);
-                }
+                    uiContainer?.Close(uiName, null);
             }
         }
 
@@ -685,17 +617,6 @@ namespace UIFramework
         /// <param name="callback">关闭回调</param>
         public void CloseWithCallback(string uiName, Action callback)
         {
-            CloseWithCallbackAsync(uiName, callback).ConfigureAwait(true);
-        }
-
-        /// <summary>
-        /// 关闭UI后执行一个回调
-        /// </summary>
-        /// <param name="uiName">UI名字</param>
-        /// <param name="callback">关闭回调</param>
-        /// <returns>Task</returns>
-        private async Task CloseWithCallbackAsync(string uiName, Action callback)
-        {
             UIData uiData = FindUIData(uiName);
             if (uiData == null)
             {
@@ -705,10 +626,7 @@ namespace UIFramework
 
             IUIContainer uiContainer = null;
             if (showDic.TryGetValue(uiData.UIType, out uiContainer))
-            {
-                await uiContainer?.CloseAsync(uiName);
-                callback?.Invoke();
-            }
+                uiContainer?.Close(uiName, callback);
         }
 
         /// <summary>

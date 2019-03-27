@@ -28,14 +28,14 @@ namespace UIFramework
         /// </summary>
         private const int ORDER_PER_PANEL = 40;
 
-        public void Open(string uiName, params object[] args)
+        public void Open(string uiName, Action<UI> callback, params object[] args)
         {
             if (UIManager.Instance.ClosingAll)
                 return;
-            OpenAsync(uiName, args).ConfigureAwait(true);
+            OpenAsync(uiName, callback, args);
         }
 
-        public async Task OpenAsync(string uiName, params object[] args)
+        private async void OpenAsync(string uiName, Action<UI> callback, params object[] args)
         {
             await MaskManager.Instance.LoadMask();
 
@@ -71,39 +71,31 @@ namespace UIFramework
         }
 
 
-        public void Pop()
+        public void Pop(Action actoin = null)
         {
             UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用Pop", this.UIType);
         }
 
-        public Task PopAsync()
+        public void PopThenOpen(string uiName, params object[] args)
         {
-            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用PopAsync", this.UIType);
-            return null;
+            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用PopThenOpen", this.UIType);
         }
 
-        public Task PopThenOpenAsync(string uiName, params object[] args)
+        public void PopAllThenOpen(string uiName, params object[] args)
         {
-            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用PopThenOpenAsync", this.UIType);
-            return null;
-        }
-
-        public Task PopAllThenOpenAsync(string uiName, params object[] args)
-        {
-            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用PopAllThenOpenAsync", this.UIType);
-            return null;
+            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用PopAllThenOpen", this.UIType);
         }
 
         /// <summary>
         /// 关闭指定名字的UI
         /// </summary>
         /// <param name="uiName"></param>
-        public void Close(string uiName)
+        public void Close(string uiName, Action callback)
         {
-            CloseAsync(uiName).ConfigureAwait(true);
+            CloseAsync(uiName, callback);
         }
 
-        public async Task CloseAsync(string uiName)
+        private async void CloseAsync(string uiName, Action callback)
         {
             if (!uiList.Contains(uiName))
                 return;
@@ -130,6 +122,8 @@ namespace UIFramework
             //释放Mask
             if ((this.UIType & UIManager.IgnoreMaskType) == 0)
                 MaskManager.Instance.SetActive(false);
+
+            callback?.Invoke();
         }
 
         /// <summary>

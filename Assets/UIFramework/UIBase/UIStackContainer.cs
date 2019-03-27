@@ -39,12 +39,12 @@ namespace UIFramework
         /// </summary>
         private const int ORDER_PER_PANEL = 40;
 
-        public void Open(string uiName, params object[] args)
+        public void Open(string uiName, Action<UI> callback, params object[] args)
         {
-            OpenAsync(uiName, args).ConfigureAwait(true);
+            OpenAsync(uiName, callback, args);
         }
 
-        public async Task OpenAsync(string uiName, params object[] args)
+        private async void OpenAsync(string uiName, Action<UI> callback, params object[] args)
         {
             if (UIManager.Instance.ClosingAll)
                 return;
@@ -104,25 +104,21 @@ namespace UIFramework
                 MaskManager.Instance.SetActive(false);
 
             pushing = false;
+
+            callback?.Invoke(newGameUI);
         }
 
-        public void Close(string uiName)
+        public void Close(string uiName, Action callback)
         {
             UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用Close", this.UIType);
         }
 
-        public Task CloseAsync(string uiName)
+        public void Pop(Action callback)
         {
-            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用CloseAsync", this.UIType);
-            return null;
+            PopAsync(callback);
         }
 
-        public void Pop()
-        {
-            PopAsync().ConfigureAwait(true);
-        }
-
-        public async Task PopAsync()
+        private async void PopAsync(Action callback)
         {
             if (poping || pushing)
                 return;
@@ -172,6 +168,8 @@ namespace UIFramework
                 MaskManager.Instance.SetActive(false);
 
             poping = false;
+
+            callback?.Invoke();
         }
 
         /// <summary>
@@ -179,7 +177,17 @@ namespace UIFramework
         /// </summary>
         /// <param name="uiName">打开的UI名字</param>
         /// <param name="args">传递到0nStart的参数</param>
-        public async Task PopThenOpenAsync(string uiName, params object[] args)
+        public void PopThenOpen(string uiName, params object[] args)
+        {
+            PopThenOpenAsync(uiName, args);
+        }
+
+        /// <summary>
+        /// 最上面UI先退栈，并打开指定名字的UI
+        /// </summary>
+        /// <param name="uiName">打开的UI名字</param>
+        /// <param name="args">传递到0nStart的参数</param>
+        private async void PopThenOpenAsync(string uiName, params object[] args)
         {
             if (UIManager.Instance.ClosingAll)
                 return;
@@ -251,7 +259,17 @@ namespace UIFramework
         /// </summary>
         /// <param name="uiName">打开的UI名字</param>
         /// <param name="args">传递到0nStart的参数</param>
-        public async Task PopAllThenOpenAsync(string uiName, params object[] args)
+        public void PopAllThenOpen(string uiName, params object[] args)
+        {
+            PopAllThenOpenAsync(uiName, args);
+        }
+
+        /// <summary>
+        /// 最上面UI先退栈，并打开指定名字的UI
+        /// </summary>
+        /// <param name="uiName">打开的UI名字</param>
+        /// <param name="args">传递到0nStart的参数</param>
+        private async void PopAllThenOpenAsync(string uiName, params object[] args)
         {
             if (UIManager.Instance.ClosingAll)
                 return;

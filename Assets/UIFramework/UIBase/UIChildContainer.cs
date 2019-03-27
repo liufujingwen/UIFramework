@@ -16,12 +16,12 @@ namespace UIFramework
         //保存已显示的子UI
         List<ChildUI> showList = new List<ChildUI>();
 
-        public void Open(string uiName, params object[] args)
+        public void Open(string uiName, Action<UI> callback, params object[] args)
         {
-            OpenAsync(uiName, args).ConfigureAwait(true);
+            OpenAsync(uiName, callback, args);
         }
 
-        public async Task OpenAsync(string uiName, params object[] args)
+        private async void OpenAsync(string uiName, Action<UI> callback, params object[] args)
         {
             await WaitAnimationFinished();
 
@@ -35,9 +35,10 @@ namespace UIFramework
                 await loadTask;
             }
 
+            ChildUI childUI = null;
+
             if (childDic != null)
             {
-                ChildUI childUI = null;
                 if (!childDic.TryGetValue(uiName, out childUI))
                 {
                     MaskManager.Instance.SetActive(false);
@@ -58,18 +59,20 @@ namespace UIFramework
             }
 
             MaskManager.Instance.SetActive(false);
+
+            callback?.Invoke(childUI);
         }
 
 
-        public void Close(string uiName)
+        public void Close(string uiName, Action callback)
         {
             ChildUI childUI = null;
             if (!childDic.TryGetValue(uiName, out childUI))
                 return;
-            CloseAsync(uiName).ConfigureAwait(true);
+            CloseAsync(uiName, callback);
         }
 
-        public async Task CloseAsync(string uiName)
+        private async void CloseAsync(string uiName, Action callback)
         {
             await WaitAnimationFinished();
 
@@ -92,6 +95,8 @@ namespace UIFramework
             }
 
             MaskManager.Instance.SetActive(false);
+
+            callback?.Invoke();
         }
 
         /// <summary>
@@ -218,27 +223,19 @@ namespace UIFramework
 
         }
 
-        public void Pop()
+        public void Pop(Action callback)
         {
             UnityEngine.Debug.LogError("子UI管理器不能使用Pop");
         }
 
-        public Task PopAsync()
+        public void PopThenOpen(string uiName, params object[] args)
         {
-            UnityEngine.Debug.LogError("子UI管理器不能使用PopAsync");
-            return null;
+            UnityEngine.Debug.LogErrorFormat("子UI管理器不能使用PopThenOpen");
         }
 
-        public Task PopThenOpenAsync(string uiName, params object[] args)
+        public void PopAllThenOpen(string uiName, params object[] args)
         {
-            UnityEngine.Debug.LogErrorFormat("子UI管理器不能使用PopThenOpenAsync");
-            return null;
-        }
-
-        public Task PopAllThenOpenAsync(string uiName, params object[] args)
-        {
-            UnityEngine.Debug.LogErrorFormat("子UI管理器不能使用PopAllThenOpenAsync");
-            return null;
+            UnityEngine.Debug.LogErrorFormat("子UI管理器不能使用PopAllThenOpen");
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System;
 
 namespace UIFramework
 {
@@ -33,12 +34,12 @@ namespace UIFramework
 
         public void OpenChildUI(string childUIName, params object[] args)
         {
-            childUIContainer.Open(childUIName, args);
+            childUIContainer.Open(childUIName, null, args);
         }
 
         public void CloseChildUI(string childUIName)
         {
-            childUIContainer.Close(childUIName);
+            childUIContainer.Close(childUIName, null);
         }
 
         public override void Awake()

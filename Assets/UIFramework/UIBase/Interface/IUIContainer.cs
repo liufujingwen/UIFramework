@@ -8,14 +8,11 @@ namespace UIFramework
 {
     public interface IUIContainer
     {
-        void Open(string uiName, params object[] args);
-        Task OpenAsync(string uiName, params object[] args);
-        void Close(string uiName);
-        Task CloseAsync(string uiName);
-        void Pop();
-        Task PopAsync();
-        Task PopThenOpenAsync(string uiName, params object[] args);
-        Task PopAllThenOpenAsync(string uiName, params object[] args);
+        void Open(string uiName, Action<UI> callback, params object[] args);
+        void Close(string uiName, Action callback);
+        void Pop(Action action);
+        void PopThenOpen(string uiName, params object[] args);
+        void PopAllThenOpen(string uiName, params object[] args);
         void Remove(string uiName);
         void Clear();
     }
