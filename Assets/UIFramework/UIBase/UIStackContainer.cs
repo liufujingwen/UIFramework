@@ -39,6 +39,11 @@ namespace UIFramework
         /// </summary>
         private const int ORDER_PER_PANEL = 40;
 
+        public string Peek()
+        {
+            return showStack.Peek();
+        }
+
         public void Open(string uiName, Action<UI> callback, params object[] args)
         {
             OpenAsync(uiName, callback, args);

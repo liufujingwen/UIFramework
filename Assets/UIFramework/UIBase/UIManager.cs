@@ -606,7 +606,20 @@ namespace UIFramework
             {
                 IUIContainer uiContainer = null;
                 if (showDic.TryGetValue(uiContext.UIData.UIType, out uiContainer))
-                    uiContainer?.Close(uiName, null);
+                {
+                    if (uiContainer is UIStackContainer)
+                    {
+                        //当前UI在栈顶才能被关闭
+                        UIStackContainer uiStackContainer = uiContainer as UIStackContainer;
+                        string topUiName = uiStackContainer.Peek();
+                        if (topUiName == uiName)
+                            uiContainer?.Pop(null);
+                    }
+                    else
+                    {
+                        uiContainer?.Close(uiName, null);
+                    }
+                }
             }
         }
 
@@ -617,16 +630,27 @@ namespace UIFramework
         /// <param name="callback">关闭回调</param>
         public void CloseWithCallback(string uiName, Action callback)
         {
-            UIData uiData = FindUIData(uiName);
-            if (uiData == null)
-            {
-                Debug.LogError($"Close的UI:{uiName}未注册");
-                return;
-            }
+            UIContext uiContext = FindUIContext(uiName);
 
-            IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiData.UIType, out uiContainer))
-                uiContainer?.Close(uiName, callback);
+            if (uiContext != null)
+            {
+                IUIContainer uiContainer = null;
+                if (showDic.TryGetValue(uiContext.UIData.UIType, out uiContainer))
+                {
+                    if (uiContainer is UIStackContainer)
+                    {
+                        //当前UI在栈顶才能被关闭
+                        UIStackContainer uiStackContainer = uiContainer as UIStackContainer;
+                        string topUiName = uiStackContainer.Peek();
+                        if (topUiName == uiName)
+                            uiContainer?.Pop(callback);
+                    }
+                    else
+                    {
+                        uiContainer?.Close(uiName, callback);
+                    }
+                }
+            }
         }
 
         /// <summary>

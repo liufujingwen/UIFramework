@@ -10,7 +10,7 @@ namespace UIFramework
     {
         void Open(string uiName, Action<UI> callback, params object[] args);
         void Close(string uiName, Action callback);
-        void Pop(Action action);
+        void Pop(Action callback);
         void PopThenOpen(string uiName, params object[] args);
         void PopAllThenOpen(string uiName, params object[] args);
         void Remove(string uiName);
