@@ -316,13 +316,6 @@ namespace UIFramework
                         await curUI.DisableAsync();
                     else
                         await curUI.DestroyAsync();
-
-                    if (uiName == curUiName)
-                    {
-                        //确保新打开的UI还能执行OnStart
-                        if (curUI.UIState > UIStateType.Awake)
-                            curUI.UIState = UIStateType.Awake;
-                    }
                 }
             }
 
@@ -332,7 +325,16 @@ namespace UIFramework
             {
                 string tempName = uiNameList[i];
                 if (tempName != uiName)
+                {
                     UIManager.Instance.Remove(tempName);
+                }
+                else
+                {
+                    //新打开的UI在栈底，直接改UI状态为Awake,否则无法正常执行OnStart
+                    GameUI tempUI = UIManager.Instance.FindUI(tempName) as GameUI;
+                    if (tempUI != null && tempUI.UIState > UIStateType.Awake)
+                        tempUI.UIState = UIStateType.Awake;
+                }
             }
             showStack.Clear();
 
