@@ -307,7 +307,8 @@ namespace UIFramework
             //最上层UI退栈
             if (showStack.Count != 0)
             {
-                string curUiName = showStack.Pop();
+                //先用Peek代替Pop
+                string curUiName = showStack.Peek();
                 GameUI curUI = UIManager.Instance.FindUI(curUiName) as GameUI;
                 if (curUI != null)
                 {
@@ -333,7 +334,7 @@ namespace UIFramework
                     //新打开的UI在栈底，直接改UI状态为Awake,否则无法正常执行OnStart
                     GameUI tempUI = UIManager.Instance.FindUI(tempName) as GameUI;
                     if (tempUI != null && tempUI.UIState > UIStateType.Awake)
-                        tempUI.UIState = UIStateType.Awake;
+                        tempUI.UIState = UIStateType.Awake;     //确保新打开的UI还能执行OnStart
                 }
             }
             showStack.Clear();
