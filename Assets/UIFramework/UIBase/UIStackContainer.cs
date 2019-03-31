@@ -94,7 +94,7 @@ namespace UIFramework
             GameUI newGameUI = UIManager.Instance.FindUI(uiName) as GameUI;
             if (newGameUI != null)
             {
-                //栈中如果存在则需要先，否者无法执行StartAsync里面的逻辑（循环栈）
+                //栈中如果存在则需要先执行Destroy(false),并改状态，保证新打开的UI能执行OnStart
                 if (contains)
                 {
                     newGameUI.Destroy(false);
