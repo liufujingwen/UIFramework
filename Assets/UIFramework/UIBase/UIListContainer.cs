@@ -111,11 +111,10 @@ namespace UIFramework
             GameUI closeUI = UIManager.Instance.FindUI(uiName) as GameUI;
             if (closeUI != null)
             {
-                if (closeUI.UIContext.UIData.UICloseType == UICloseType.Destroy)
-                    await closeUI.DestroyAsync();
-                else
-                    await closeUI.DisableAsync();
-
+                //新播放退场动画
+                await closeUI.DisableAsync();
+                bool delete = closeUI.UIContext.UIData.UICloseType == UICloseType.Destroy;
+                closeUI.Destroy(delete);
                 UIManager.Instance.Remove(uiName);
             }
 

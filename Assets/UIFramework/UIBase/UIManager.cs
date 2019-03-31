@@ -244,7 +244,7 @@ namespace UIFramework
             UI tempUI = FindUI(uiName);
             if (tempUI != null)
             {
-                //保证从池中出来的父节点也是正确的
+                //保证从缓存池中出来的父节点也是正确的
                 SetUIParent(tempUI.Transform, tempUI.UIContext.UIData.UIType, false);
                 //保证所有UI只执行一次Init
                 if (!tempUI.AwakeState)
@@ -442,6 +442,25 @@ namespace UIFramework
             UIData uiData = null;
             uiRegisterDic.TryGetValue(uiName, out uiData);
             return uiData;
+        }
+
+        /// <summary>
+        /// 移除UIContext数据
+        /// </summary>
+        public void RemoveUIContext(string uiName)
+        {
+            if (string.IsNullOrEmpty(uiName))
+                return;
+
+            for (int i = 0; i < uiList.Count; i++)
+            {
+                UIContext uiContext = uiList[i];
+                if (uiContext.UIData.UIName == uiName)
+                {
+                    uiList.RemoveAt(i);
+                    break;
+                }
+            }
         }
 
         /// <summary>
@@ -659,39 +678,69 @@ namespace UIFramework
         /// <param name="uiName">UI名字</param>
         public void Remove(string uiName)
         {
-            for (int i = 0, max = uiList.Count; i < max; i++)
+            UIContext uiContext = FindUIContext(uiName);
+            if (uiContext != null && uiContext.UIData.UIName == uiName)
             {
-                UIContext tempUIContext = uiList[i];
-                if (tempUIContext != null && tempUIContext.UIData.UIName == uiName)
+                //清除显示容器数据
+                IUIContainer uiContainer = null;
+                if (showDic.TryGetValue(uiContext.UIData.UIType, out uiContainer))
+                    uiContainer.Remove(uiName);
+
+                RemoveUIContext(uiName);
+
+                //子UI一律销毁
+                if (uiContext.UIData.UIType == UIType.Child)
                 {
-                    //清除显示容器数据
-                    IUIContainer uiContainer = null;
-                    if (showDic.TryGetValue(tempUIContext.UIData.UIType, out uiContainer))
-                        uiContainer.Remove(uiName);
+                    uiContext.TCS = null;
+                    if (uiContext.UI != null && uiContext.UI.UIState != UIStateType.Destroy)
+                        uiContext.UI.Destroy(true);
+                }
+                else if (uiContext.UIData.UICloseType == UICloseType.Destroy)
+                {
+                    uiContext.TCS = null;
+                    if (uiContext.UI != null && uiContext.UI.UIState != UIStateType.Destroy)
+                        uiContext.UI.Destroy(true);
+                }
+                else
+                {
+                    if (uiContext.UI != null && uiContext.UI.UIState != UIStateType.Destroy)
+                        uiContext.UI.Destroy(false);
 
-                    uiList.RemoveAt(i);
+                    //UI不销毁，直接回池
+                    if (uiContext.UI.Transform)
+                        uiContext.UI.Transform.SetParent(poolCanvas, false);
 
-                    //子UI一律销毁
-                    if (tempUIContext.UIData.UIType == UIType.Child || tempUIContext.UIData.UICloseType == UICloseType.Destroy)
+                    GameUI gameUI = uiContext.UI as GameUI;
+                    if (gameUI != null)
                     {
-                        tempUIContext.TCS = null;
-                        if (tempUIContext.UI != null && tempUIContext.UI.UIState != UIStateType.Destroy)
-                            tempUIContext.UI.Destroy();
+                        gameUI.InPool();
+                        poolDic.Add(uiContext.UIData.UIName, uiContext);
                     }
-                    else
-                    {
-                        //UI不销毁，直接回池
-                        if (tempUIContext.UI.Transform)
-                            tempUIContext.UI.Transform.SetParent(poolCanvas, false);
-
-                        GameUI gameUI = tempUIContext.UI as GameUI;
-                        gameUI?.InPool();
-                        poolDic.Add(tempUIContext.UIData.UIName, tempUIContext);
-                    }
-
-                    break;
                 }
             }
+        }
+
+        /// <summary>
+        /// 回收UI不销毁
+        /// </summary>
+        /// <param name="uiName">UI名字</param>
+        public void Despawn(string uiName)
+        {
+            UIContext uiContext = FindUIContext(uiName);
+            if (uiContext == null)
+                return;
+
+            if (uiContext.UIData.IsChildUI)
+                return;
+
+            //UI不销毁，直接回池
+            if (uiContext.UI.Transform)
+                uiContext.UI.Transform.SetParent(poolCanvas, false);
+
+            GameUI gameUI = uiContext.UI as GameUI;
+            gameUI?.InPool();
+            poolDic.Add(uiContext.UIData.UIName, uiContext);
+            RemoveUIContext(uiName);
         }
 
         /// <summary>

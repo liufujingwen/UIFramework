@@ -76,19 +76,15 @@ namespace UIFramework
             base.Disable();
         }
 
-        public override void BeforeDestroy()
+        public override void Destroy(bool delete)
         {
-            base.BeforeDestroy();
-            childUIContainer.Disable();
+            childUIContainer.Destroy(delete);
+            base.Destroy(delete);
         }
 
-        public override void Destroy()
-        {
-            childUIContainer.Clear();
-            base.Destroy();
-        }
-
-        //UI回池
+        /// <summary>
+        /// UI回收到缓存池
+        /// </summary>
         public void InPool()
         {
             if (this.UIState > UIStateType.Awake)

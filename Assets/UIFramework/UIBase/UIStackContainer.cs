@@ -88,18 +88,23 @@ namespace UIFramework
                 await curUI?.DisableAsync();
             }
 
+            bool contains = showStack.Contains(uiName);
+
             showStack.Push(uiName);
             GameUI newGameUI = UIManager.Instance.FindUI(uiName) as GameUI;
             if (newGameUI != null)
             {
+                //栈中如果存在则需要先，否者无法执行StartAsync里面的逻辑（循环栈）
+                if (contains)
+                {
+                    newGameUI.Destroy(false);
+                    newGameUI.UIState = UIStateType.Awake;
+                }
+
                 //先设置UI层级
                 int order = (showStack.Count - 1) * ORDER_PER_PANEL + MinOrder;
                 newGameUI.SetCavansOrder(order);
 
-                bool contains = showStack.Contains(uiName);
-                //栈底如果存在则直接修改状态，否者无法执行StartAsync里面的逻辑（循环栈）
-                if (contains && newGameUI.UIState > UIStateType.Awake)
-                    newGameUI.UIState = UIStateType.Awake;
                 //播放UI入场动画
                 await newGameUI.StartAsync(args);
             }
@@ -144,16 +149,25 @@ namespace UIFramework
                 if (curUI != null)
                 {
                     bool contains = showStack.Contains(curUIName);
+                    await curUI.DisableAsync();
 
-                    //栈底没有才能Destroy(循环栈)
-                    if (contains || curUI.UIContext.UIData.UICloseType != UICloseType.Destroy)
-                        await curUI.DisableAsync();
-                    else
-                        await curUI.DestroyAsync();
+                    bool delete = !contains && curUI.UIContext.UIData.UICloseType == UICloseType.Destroy;
+
+                    curUI.Destroy(delete);
 
                     //栈底没有才能移除UI(循环栈)
-                    if (!contains)
+                    if (delete)
+                    {
                         UIManager.Instance.Remove(curUIName);
+                    }
+                    else
+                    {
+                        //栈中如果没有就直接回收缓存池，否则只改状态
+                        if (!contains)
+                            UIManager.Instance.Despawn(curUIName);
+                        else
+                            curUI.UIState = UIStateType.Awake;
+                    }
                 }
             }
 
@@ -162,9 +176,14 @@ namespace UIFramework
             {
                 string preUIName = showStack.Peek();
                 GameUI preUI = UIManager.Instance.FindUI(preUIName) as GameUI;
+
+                //需要从缓存池中取
                 if (preUI != null)
                 {
-                    await preUI.EnableAsync();
+                    if (preUI.UIState == UIStateType.Awake)
+                        await preUI.StartAsync();
+                    else
+                        await preUI.EnableAsync();
                 }
             }
 
@@ -230,23 +249,18 @@ namespace UIFramework
                 if (curUI != null)
                 {
                     bool contains = showStack.Contains(curUiName);
+                    await curUI.DisableAsync();
 
                     //栈底没有才能Destroy(循环栈),且不是打开的最新UI
-                    if (contains || curUI.UIContext.UIData.UICloseType != UICloseType.Destroy || uiName == curUiName)
-                        await curUI.DisableAsync();
-                    else
-                        await curUI.DestroyAsync();
+                    bool delete = !contains && uiName != curUiName && curUI.UIContext.UIData.UICloseType == UICloseType.Destroy;
+
+                    curUI.Destroy(delete);
 
                     //栈底没有才能移除UI(循环栈),且不是需要打开的UI
-                    if (!contains && uiName != curUiName)
+                    if (delete)
                         UIManager.Instance.Remove(curUiName);
-
-                    //保证打开的UI能执行OnStart
-                    if (uiName == curUiName)
-                    {
-                        if (curUI.UIState > UIStateType.Awake)
-                            curUI.UIState = UIStateType.Awake;
-                    }
+                    else
+                        UIManager.Instance.Despawn(curUiName);
                 }
             }
 
@@ -307,36 +321,28 @@ namespace UIFramework
             //最上层UI退栈
             if (showStack.Count != 0)
             {
-                //先用Peek代替Pop
                 string curUiName = showStack.Peek();
                 GameUI curUI = UIManager.Instance.FindUI(curUiName) as GameUI;
                 if (curUI != null)
                 {
-                    //退栈UI如果等于新打开的UI,不能Destroy
-                    if (curUI.UIContext.UIData.UICloseType != UICloseType.Destroy || uiName == curUiName)
-                        await curUI.DisableAsync();
-                    else
-                        await curUI.DestroyAsync();
+                    await curUI.DisableAsync();
+                    bool delete = uiName != curUiName && curUI.UIContext.UIData.UICloseType == UICloseType.Destroy;
+                    curUI.Destroy(delete);
+
+                    if (!delete)
+                        UIManager.Instance.Despawn(curUiName);
                 }
             }
 
-            //栈底可能存在新打开的UI，所以不能全不删除,直接调用Clear也许会清掉已经加载的新UI(循环栈)
+            //除了新打开的UI，其余全部移除
             List<string> uiNameList = showStack.GetList();
             for (int i = uiNameList.Count - 1; i >= 0; i--)
             {
                 string tempName = uiNameList[i];
                 if (tempName != uiName)
-                {
                     UIManager.Instance.Remove(tempName);
-                }
-                else
-                {
-                    //新打开的UI在栈底，直接改UI状态为Awake,否则无法正常执行OnStart
-                    GameUI tempUI = UIManager.Instance.FindUI(tempName) as GameUI;
-                    if (tempUI != null && tempUI.UIState > UIStateType.Awake)
-                        tempUI.UIState = UIStateType.Awake;     //确保新打开的UI还能执行OnStart
-                }
             }
+
             showStack.Clear();
 
             poping = false;

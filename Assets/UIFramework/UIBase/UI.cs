@@ -308,52 +308,34 @@ namespace UIFramework
 
         #region Destroy
 
-        public async Task DestroyAsync()
-        {
-            if (this.UIState != UIStateType.Destroy)
-            {
-                BeforeDestroy();
-                this.AnimationState = AnimationStateType.Destroy;
-
-                //播放退出动画
-                if (this.UIContext.UIData.HasAnimation)
-                {
-                    IsPlayingAniamtionTask = new TaskCompletionSource<bool>();
-                    this.Animator.enabled = true;
-                    this.Animator.Play("Disable");
-                    this.Animator.Update(0);
-                }
-
-                await this.WaitAnimationFinished();
-
-                Destroy();
-            }
-        }
-
-        /// <summary>
-        /// 播放动画之前执行
-        /// </summary>
-        public virtual void BeforeDestroy()
-        {
-        }
-
-        public virtual void Destroy()
+        public virtual void Destroy(bool delete)
         {
             Disable();
             if (this.UIState != UIStateType.Destroy)
             {
-                this.OnDestroy();
-                GameObject.Destroy(this.GameObject);
-                this.GameObject = null;
-                this.Transform = null;
-                this.UIState = UIStateType.Destroy;
-                this.AnimationState = AnimationStateType.Destroy;
-                AwakeState = false;
-                this.IsPlayingAniamtionTask = null;
+                this.OnDestroy(delete);
+
+                //真删除,直接Destroy GameObject
+                if (delete)
+                {
+                    GameObject.Destroy(this.GameObject);
+                    this.GameObject = null;
+                    this.Transform = null;
+                    this.UIState = UIStateType.Destroy;
+                    this.AnimationState = AnimationStateType.Destroy;
+                    AwakeState = false;
+                    this.IsPlayingAniamtionTask = null;
+                }
+                else
+                {
+                    this.UIState = UIStateType.Awake;
+                    this.AnimationState = AnimationStateType.None;
+                    this.IsPlayingAniamtionTask = null;
+                }
             }
         }
 
-        public void OnDestroy()
+        public void OnDestroy(bool delete)
         {
             this.UIProxy?.OnDestroy();
         }

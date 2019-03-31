@@ -120,6 +120,23 @@ namespace UIFramework
             UIManager.Instance.Remove(uiName);
         }
 
+        public void Destroy(bool delete)
+        {
+            showList.Clear();
+            if (delete)
+            {
+                if (childDic != null)
+                {
+                    foreach (var kv in childDic)
+                    {
+                        string uiName = kv.Value.UIContext.UIData.UIName;
+                        UIManager.Instance.Remove(uiName);
+                    }
+                    childDic.Clear();
+                }
+            }
+        }
+
         //删除所有子UI
         public void Clear()
         {
@@ -220,7 +237,6 @@ namespace UIFramework
                 if (kv.Value.UIState > UIStateType.Awake)
                     kv.Value.UIState = UIStateType.Awake;
             }
-
         }
 
         public void Pop(Action callback)

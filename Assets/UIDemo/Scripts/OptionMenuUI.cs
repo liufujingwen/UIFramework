@@ -7,7 +7,7 @@ using System;
 using UIFramework;
 using UnityEngine.EventSystems;
 
-[UIAttribute("OptionMenuUI", UIType.Normal, UIResType.Resorces, UICloseType.Destroy, true)]
+[UIAttribute("OptionMenuUI", UIType.Normal, UIResType.Resorces, UICloseType.Hide, true)]
 public class OptionMenuUI : UIMonoProxy
 {
     public override void OnAwake()
