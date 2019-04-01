@@ -337,7 +337,7 @@ namespace UIFramework
 
         public void OnDestroy(bool delete)
         {
-            this.UIProxy?.OnDestroy();
+            this.UIProxy?.OnDestroy(delete);
         }
 
         #endregion

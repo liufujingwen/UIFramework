@@ -49,11 +49,14 @@ namespace UIFramework
             luaUI?.OnDisable();
         }
 
-        public override void OnDestroy()
+        public override void OnDestroy(bool delete)
         {
-            luaUI?.OnDestroy();
-            RemoveAction?.Invoke(this.UIContext.UIData.UIName);
-            luaUI = null;
+            luaUI?.OnDestroy(delete);
+            if (delete)
+            {
+                RemoveAction?.Invoke(this.UIContext.UIData.UIName);
+                luaUI = null;
+            }
         }
 
         public Component FindComponent(string name, Type type)

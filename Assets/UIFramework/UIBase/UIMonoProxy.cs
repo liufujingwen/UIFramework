@@ -25,7 +25,7 @@ namespace UIFramework
         {
         }
 
-        public override void OnDestroy()
+        public override void OnDestroy(bool delete)
         {
         }
 

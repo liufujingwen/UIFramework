@@ -22,7 +22,7 @@ end
 function LuaUI:OnDisable()
 end
 
-function LuaUI:OnDestroy()
+function LuaUI:OnDestroy(delete)
 end
 
 function LuaUI:OnNotifiy(evt, ...)

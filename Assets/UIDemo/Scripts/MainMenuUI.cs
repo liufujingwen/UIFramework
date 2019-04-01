@@ -54,7 +54,7 @@ public class MainMenuUI : UIMonoProxy
         Debug.Log("MainMenuUI OnDisable");
     }
 
-    public override void OnDestroy()
+    public override void OnDestroy(bool delete)
     {
         Debug.Log("MainMenuUI OnDestroy");
     }

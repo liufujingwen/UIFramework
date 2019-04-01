@@ -48,7 +48,7 @@ public class DialogUI : UIMonoProxy
         Debug.Log("DialogUI OnDisable");
     }
 
-    public override void OnDestroy()
+    public override void OnDestroy(bool delete)
     {
         Debug.Log("DialogUI OnDestroy");
     }

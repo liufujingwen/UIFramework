@@ -36,7 +36,7 @@ public class OptionMenuUI : UIMonoProxy
         Debug.Log("OptionMenuUI OnDisable");
     }
 
-    public override void OnDestroy()
+    public override void OnDestroy(bool delete)
     {
         Debug.Log("OptionMenuUI OnDestroy");
     }

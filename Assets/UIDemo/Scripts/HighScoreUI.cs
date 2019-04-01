@@ -36,7 +36,7 @@ public class HighScoreUI : UIMonoProxy
         Debug.Log("HighScoreUI OnDisable");
     }
 
-    public override void OnDestroy()
+    public override void OnDestroy(bool delete)
     {
         Debug.Log("HighScoreUI OnDestroy");
     }

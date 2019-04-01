@@ -31,7 +31,7 @@ namespace UIFramework
 
         public abstract void OnDisable();
 
-        public abstract void OnDestroy();
+        public abstract void OnDestroy(bool delete);
 
         public GameObject FindGameObject(string name)
         {
