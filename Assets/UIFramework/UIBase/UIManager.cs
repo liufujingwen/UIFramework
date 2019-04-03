@@ -15,8 +15,6 @@ namespace UIFramework
         //所有一级UI必须注册后才能创建
         private Dictionary<string, UIData> uiRegisterDic = new Dictionary<string, UIData>();
 
-        public List<UI> uiList = new List<UI>();
-
         //C#的UI逻辑Type
         private Dictionary<string, Type> uiTypeDic = new Dictionary<string, Type>();
 
