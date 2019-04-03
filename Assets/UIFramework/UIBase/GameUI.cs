@@ -23,23 +23,43 @@ namespace UIFramework
         }
 
         /// <summary>
+        /// 通过名字查找子UI
+        /// </summary>
+        /// <param name="childUiName">子UI名字</param>
+        /// <returns>子UI</returns>
+        public ChildUI FindChildUi(string childUiName)
+        {
+            return childUIContainer.FindChildUi(childUiName);
+        }
+
+        /// <summary>
         /// 添加子UI
         /// </summary>
-        /// <param name="childUIName">子UI名字</param>
-        /// <param name="childUI">子UI实例</param>
-        public void AddChildUI(string childUIName, ChildUI childUI)
+        /// <param name="childUiName">子UI名字</param>
+        /// <param name="childUi">子UI实例</param>
+        public void AddChildUI(string childUiName, ChildUI childUi)
         {
-            childUIContainer.AddChildUI(childUIName, childUI);
+            if (childUi == null)
+                return;
+            childUi.ParentUI = this;
+            childUIContainer.AddChildUI(childUiName, childUi);
         }
 
-        public void OpenChildUI(string childUIName, params object[] args)
+        public void OpenChildUI(string childUiName, params object[] args)
         {
-            childUIContainer.Open(childUIName, null, args);
+            ChildUI childUi = childUIContainer.FindChildUi(childUiName);
+            if (childUi == null)
+            {
+                childUi = UIManager.Instance.CreateUI(childUiName) as ChildUI;
+                this.AddChildUI(childUiName, childUi);
+            }
+
+            childUIContainer.Open(childUi, null, args);
         }
 
-        public void CloseChildUI(string childUIName)
+        public void CloseChildUI(string childUiName)
         {
-            childUIContainer.Close(childUIName, null);
+            childUIContainer.Close(childUiName, null);
         }
 
         public override void Awake()
@@ -76,10 +96,10 @@ namespace UIFramework
             base.Disable();
         }
 
-        public override void Destroy(bool delete)
+        public override void Destroy()
         {
-            childUIContainer.Destroy(delete);
-            base.Destroy(delete);
+            childUIContainer.Destroy();
+            base.Destroy();
         }
 
         /// <summary>
@@ -92,5 +112,13 @@ namespace UIFramework
             childUIContainer.InPool();
         }
 
+        //ui动画播放完成通知
+        public override void NotifyAnimationState(Animator animator)
+        {
+            if (this.GameObject == animator.gameObject)
+                this.OnNotifyAnimationState();
+            else
+                childUIContainer.OnNotifyAnimationFinish(animator);
+        }
     }
 }

@@ -25,15 +25,15 @@ namespace UIFramework
         {
         }
 
-        public override void OnDestroy(bool delete)
+        public override void OnDestroy()
         {
         }
 
         public T FindComponent<T>(string name) where T : Component
         {
-            if (UIContext == null || UIContext.UI == null || !UIContext.UI.GameObject)
+            if (UI == null || UI == null || !UI.GameObject)
                 return null;
-            return UIContext.UI.GameObject.FindComponent<T>(name);
+            return UI.GameObject.FindComponent<T>(name);
         }
 
         public override void OnNotifiy(string evt, params object[] args)

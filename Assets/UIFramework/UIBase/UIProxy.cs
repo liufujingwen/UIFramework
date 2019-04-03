@@ -11,12 +11,12 @@ namespace UIFramework
 {
     public abstract class UIProxy : EventListener
     {
-        public void SetContext(UIContext uiContext)
+        public void SetUi(UI ui)
         {
-            this.UIContext = uiContext;
+            this.UI = ui;
         }
 
-        public UIContext UIContext;
+        public UI UI;
 
         public override string[] OnGetEvents()
         {
@@ -31,20 +31,20 @@ namespace UIFramework
 
         public abstract void OnDisable();
 
-        public abstract void OnDestroy(bool delete);
+        public abstract void OnDestroy();
 
         public GameObject FindGameObject(string name)
         {
-            if (UIContext == null || UIContext.UI == null || !UIContext.UI.Transform)
+            if (UI == null || UI == null || !UI.Transform)
                 return null;
-            return UIContext.UI.Transform.FindGameObject(name);
+            return UI.Transform.FindGameObject(name);
         }
 
         public Transform FindTransform(string name)
         {
-            if (UIContext == null || UIContext.UI == null || !UIContext.UI.Transform)
+            if (UI == null || UI == null || !UI.Transform)
                 return null;
-            return UIContext.UI.Transform.FindTransform(name);
+            return UI.Transform.FindTransform(name);
         }
 
         public void RegisterListener(string name, VoidDelegate handle, bool clear = true)
@@ -76,10 +76,10 @@ namespace UIFramework
 
         public void OpenChildUI(string childUIName, params object[] args)
         {
-            if (UIContext == null || UIContext.UI == null)
+            if (UI == null)
                 return;
 
-            GameUI gameUI = UIContext.UI as GameUI;
+            GameUI gameUI = UI as GameUI;
             if (gameUI == null)
                 return;
 
@@ -88,7 +88,7 @@ namespace UIFramework
 
         public void CloseChildUI(string childUIName)
         {
-            GameUI gameUI = UIContext.UI as GameUI;
+            GameUI gameUI = UI as GameUI;
             if (gameUI == null)
                 return;
 

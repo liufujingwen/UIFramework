@@ -11,12 +11,12 @@ namespace UIFramework
         /// <summary>
         /// UI名字
         /// </summary>
-        public string UIName = null;
+        public string UiName = null;
 
         /// <summary>
         /// UI类型
         /// </summary>
-        public UIType UIType = UIType.Normal;
+        public UIType UiType = UIType.Normal;
 
         /// <summary>
         /// UI加载方式

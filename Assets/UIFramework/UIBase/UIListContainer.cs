@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace UIFramework
 {
     public class UIListContainer : IUIContainer
     {
-        List<string> uiList = new List<string>();
+        List<UI> uiList = new List<UI>();
 
         public UIListContainer(UIType uiType, int minOrder)
         {
@@ -32,42 +33,45 @@ namespace UIFramework
         {
             if (UIManager.Instance.ClosingAll)
                 return;
-            OpenAsync(uiName, callback, args);
+
+            UI ui = FindUI(uiName);
+
+            if (ui == null)
+            {
+                ui = UIManager.Instance.CreateUI(uiName);
+                uiList.Add(ui);
+            }
+
+            if (ui == null)
+                return;
+
+            OpenAsync(ui, callback, args);
         }
 
-        private async void OpenAsync(string uiName, Action<UI> callback, params object[] args)
+        public void Open(UI ui, Action<UI> callback, params object[] args)
         {
-            await MaskManager.Instance.LoadMask();
+            if (UIManager.Instance.ClosingAll)
+                return;
+            OpenAsync(ui, callback, args);
+        }
 
+        private async void OpenAsync(UI ui, Action<UI> callback, params object[] args)
+        {
             //保证播放动画期间不能操作
             if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                MaskManager.Instance.SetActive(true);
+                UIManager.Instance.SetMask(true);
 
-            Task loadTask = UIManager.Instance.LoadUIAsync(uiName);
-            {
-                //容错处理，UI可能不存在
-                if (loadTask == null)
-                {
-                    if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                        MaskManager.Instance.SetActive(false);
-                }
-                await loadTask;
-            }
+            await UIManager.Instance.LoadUIAsync(ui);
 
-            uiList.Add(uiName);
-            GameUI newGameUI = UIManager.Instance.FindUI(uiName) as GameUI;
-            if (newGameUI != null)
-            {
-                //先设置UI层级
-                int order = (uiList.Count - 1) * ORDER_PER_PANEL + MinOrder;
-                newGameUI.SetCavansOrder(order);
-                //播放UI入场动画
-                await newGameUI.StartAsync(args);
-            }
+            //先设置UI层级
+            int order = (uiList.Count - 1) * ORDER_PER_PANEL + MinOrder;
+            ui.SetCavansOrder(order);
+            //播放UI入场动画
+            await ui.StartAsync(args);
 
             //释放mask
             if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                MaskManager.Instance.SetActive(false);
+                UIManager.Instance.SetMask(false);
         }
 
 
@@ -97,32 +101,36 @@ namespace UIFramework
 
         private async void CloseAsync(string uiName, Action callback)
         {
-            if (!uiList.Contains(uiName))
+            UI ui = FindUI(uiName);
+            if (ui == null)
                 return;
-
-            await MaskManager.Instance.LoadMask();
 
             //保证播放动画期间不能操作
             if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                MaskManager.Instance.SetActive(true);
+                UIManager.Instance.SetMask(true);
 
-            uiList.Remove(uiName);
-
-            GameUI closeUI = UIManager.Instance.FindUI(uiName) as GameUI;
-            if (closeUI != null)
-            {
-                //新播放退场动画
-                await closeUI.DisableAsync();
-                bool delete = closeUI.UIContext.UIData.UICloseType == UICloseType.Destroy;
-                closeUI.Destroy(delete);
-                UIManager.Instance.Remove(uiName);
-            }
+            //新播放退场动画
+            await ui.DisableAsync();
+            uiList.Remove(ui);
+            ui.Destroy();
 
             //释放Mask
             if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                MaskManager.Instance.SetActive(false);
+                UIManager.Instance.SetMask(false);
 
             callback?.Invoke();
+        }
+
+        public UI FindUI(string uiName)
+        {
+            for (int i = 0; i < uiList.Count; i++)
+            {
+                UI ui = uiList[i];
+                if (ui != null && ui.UiData.UiName == uiName)
+                    return ui;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -131,7 +139,15 @@ namespace UIFramework
         /// <param name="uiName">UI名字</param>
         public void Remove(string uiName)
         {
-            uiList.Remove(uiName);
+            for (int i = 0; i < uiList.Count; i++)
+            {
+                UI ui = uiList[i];
+                if (ui != null && ui.UiData.UiName == uiName)
+                {
+                    uiList.RemoveAt(i);
+                    ui.Destroy();
+                }
+            }
         }
 
         /// <summary>
@@ -139,16 +155,45 @@ namespace UIFramework
         /// </summary>
         public void Clear()
         {
-            if (uiList.Count > 0)
+            for (int i = uiList.Count - 1; i >= 0; i--)
             {
-                for (int i = 0; i < uiList.Count; i++)
-                {
-                    string tempUIName = uiList[i];
-                    UIManager.Instance.Remove(tempUIName);
-                }
+                UI ui = uiList[i];
+                uiList.RemoveAt(i);
+                ui.Destroy();
             }
             uiList.Clear();
         }
 
+        /// <summary>
+        /// 设置管理器所有UI父节点
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="worldPositionStays"></param>
+        public void SetUiParent(Transform parent, bool worldPositionStays)
+        {
+            if (parent)
+                return;
+
+            for (int i = 0; i < uiList.Count; i++)
+            {
+                UI ui = uiList[i];
+                if (ui != null && ui.Transform)
+                {
+                    if (!ui.Transform.IsChildOf(parent))
+                        ui.Transform.SetParent(parent, worldPositionStays);
+                }
+            }
+        }
+
+        //通知动画播放完成
+        public void OnNotifyAnimationFinish(Animator animator)
+        {
+            for (int i = 0; i < uiList.Count; i++)
+            {
+                UI ui = uiList[i];
+                if (ui != null)
+                    ui.NotifyAnimationState(animator);
+            }
+        }
     }
 }

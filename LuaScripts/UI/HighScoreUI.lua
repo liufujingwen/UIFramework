@@ -1,10 +1,10 @@
 local HighScoreUI = LuaUIManager.Register(LuaUI, "HighScoreUI", UIType.Normal, UIResType.Resorces, UICloseType.Hide, true);
 
-function HighScoreUI:Ctor(name, context)
+--function HighScoreUI:Ctor(name, ui)
 
-    self.super.Ctor(self, name, context);
+--    self.super.Ctor(self, name, ui);
 
-end
+--end
 
 function HighScoreUI:OnAwake()
 

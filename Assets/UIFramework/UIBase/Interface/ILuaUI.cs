@@ -19,7 +19,7 @@ namespace UIFramework
 
         void OnDisable();
 
-        void OnDestroy(bool delete);
+        void OnDestroy();
 
         void OnNotifiy(string evt, params object[] args);
     }

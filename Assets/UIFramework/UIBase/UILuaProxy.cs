@@ -11,9 +11,9 @@ namespace UIFramework
         static Action<string> RemoveAction = null;
         static Func<string, UILuaProxy, ILuaUI> NewFunc = null;
 
-        public UILuaProxy(UIContext uiContext)
+        public UILuaProxy(UI ui)
         {
-            this.SetContext(uiContext);
+            this.SetUi(ui);
             if (NewFunc == null)
                 NewFunc = Main.Instance.LuaEnv.Global.GetInPath<Func<string, UILuaProxy, ILuaUI>>("LuaUIManager.New");
 
@@ -21,7 +21,7 @@ namespace UIFramework
                 RemoveAction = Main.Instance.LuaEnv.Global.GetInPath<Action<string>>("LuaUIManager.RemoveClassType");
 
             if (NewFunc != null)
-                luaUI = NewFunc(this.UIContext.UIData.UIName, this);
+                luaUI = NewFunc(this.UI.UiData.UiName, this);
         }
 
         public override string[] OnGetEvents()
@@ -49,21 +49,19 @@ namespace UIFramework
             luaUI?.OnDisable();
         }
 
-        public override void OnDestroy(bool delete)
+        public override void OnDestroy()
         {
-            luaUI?.OnDestroy(delete);
-            if (delete)
-            {
-                RemoveAction?.Invoke(this.UIContext.UIData.UIName);
-                luaUI = null;
-            }
+            luaUI?.OnDestroy();
+            RemoveAction?.Invoke(this.UI.UiData.UiName);
+            luaUI = null;
+
         }
 
         public Component FindComponent(string name, Type type)
         {
-            if (this.UIContext == null || this.UIContext.UI == null || !this.UIContext.UI.Transform || type == null)
+            if (this.UI == null || this.UI == null || !this.UI.Transform || type == null)
                 return null;
-            GameObject tempGo = this.UIContext.UI.Transform.FindGameObject(name);
+            GameObject tempGo = this.UI.Transform.FindGameObject(name);
             if (!tempGo)
                 return null;
             return tempGo.GetComponent(type);

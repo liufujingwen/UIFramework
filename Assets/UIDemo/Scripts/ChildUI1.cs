@@ -36,7 +36,7 @@ public class ChildUI1 : UIMonoProxy
         Debug.Log("ChildUI1 OnDisable");
     }
 
-    public override void OnDestroy(bool delete)
+    public override void OnDestroy()
     {
         Debug.Log("ChildUI1 OnDestroy");
     }

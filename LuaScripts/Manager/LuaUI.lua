@@ -4,9 +4,9 @@ function LuaUI:Ctor(name, uiProxy)
 
     self.Name = name
     self.UIProxy = uiProxy
-    self.UIContext = uiProxy.UIContext
-    self.Transform = self.UIContext.UI.Transform
-    self.GameObject = self.UIContext.UI.GameObject
+    self.UI = uiProxy.UI
+    self.Transform = self.UI.Transform
+    self.GameObject = self.UI.GameObject
 
 end
 
@@ -22,7 +22,7 @@ end
 function LuaUI:OnDisable()
 end
 
-function LuaUI:OnDestroy(delete)
+function LuaUI:OnDestroy()
 end
 
 function LuaUI:OnNotifiy(evt, ...)

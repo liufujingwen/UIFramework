@@ -22,5 +22,15 @@ namespace UIFramework
         /// UI
         /// </summary>
         public UI UI = null;
+
+        /// <summary>
+        /// 销毁UI
+        /// </summary>
+        public void Destroy()
+        {
+            this.TCS = null;
+            this.UI?.Destroy();
+        }
+
     }
 }

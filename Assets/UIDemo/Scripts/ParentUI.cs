@@ -18,7 +18,6 @@ public class ParentUI : UIMonoProxy
         RegisterListener("Tab1", OnClickTab1);
         RegisterListener("Tab2", OnClickTab2);
         RegisterListener("Tab3", OnClickTab3);
-
     }
 
     void OnClickExitBtn(PointerEventData eventData)
@@ -55,7 +54,7 @@ public class ParentUI : UIMonoProxy
     public override void OnStart(params object[] args)
     {
         Debug.Log("ParentUI OnStart");
-        OpenChildUI("ChildUI2");
+        OpenChildUI("ChildUI1");
     }
 
     public override void OnEnable()
@@ -68,7 +67,7 @@ public class ParentUI : UIMonoProxy
         Debug.Log("ParentUI OnDisable");
     }
 
-    public override void OnDestroy(bool delete)
+    public override void OnDestroy()
     {
         Debug.Log("ParentUI OnDestroy");
     }
