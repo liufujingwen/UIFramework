@@ -26,7 +26,7 @@ public class XLuaEventProxy : EventListener
         return OnGetEventsFunc?.Invoke();
     }
 
-    public override void OnNotifiy(string evt, params object[] args)
+    public override void OnNotify(string evt, params object[] args)
     {
         OnNotifyActoin?.Invoke(evt, args);
     }

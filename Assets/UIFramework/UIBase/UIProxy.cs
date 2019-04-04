@@ -35,14 +35,14 @@ namespace UIFramework
 
         public GameObject FindGameObject(string name)
         {
-            if (UI == null || UI == null || !UI.Transform)
+            if (UI == null || !UI.Transform)
                 return null;
             return UI.Transform.FindGameObject(name);
         }
 
         public Transform FindTransform(string name)
         {
-            if (UI == null || UI == null || !UI.Transform)
+            if (UI == null || !UI.Transform)
                 return null;
             return UI.Transform.FindTransform(name);
         }
@@ -86,6 +86,19 @@ namespace UIFramework
             gameUI.OpenChildUI(childUIName, args);
         }
 
+        //只打开一个子UI，已显示的UI会被关闭
+        public void OpenOneChildUI(string childUiName, params object[] args)
+        {
+            if (this.UI == null)
+                return;
+
+            GameUI gameUi = this.UI as GameUI;
+            if (gameUi == null)
+                return;
+
+            gameUi.OpenOneChildUi(childUiName, args);
+        }
+
         public void CloseChildUI(string childUIName)
         {
             GameUI gameUI = UI as GameUI;
@@ -93,6 +106,23 @@ namespace UIFramework
                 return;
 
             gameUI.CloseChildUI(childUIName);
+        }
+
+        public void Close()
+        {
+            if (this.UI == null)
+                return;
+
+            if (this.UI is GameUI)
+            {
+                UIManager.Instance.Close(this.UI.UiData.UiName);
+            }
+            else if (this.UI is ChildUI)
+            {
+                ChildUI childUi = this.UI as ChildUI;
+                if (childUi.ParentUI != null)
+                    childUi.ParentUI.CloseChildUI(this.UI.UiData.UiName);
+            }
         }
     }
 }

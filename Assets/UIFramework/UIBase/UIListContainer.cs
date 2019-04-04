@@ -121,6 +121,11 @@ namespace UIFramework
             callback?.Invoke();
         }
 
+        /// <summary>
+        /// 通过名字查找UI
+        /// </summary>
+        /// <param name="uiName">查找的UI名字</param>
+        /// <returns></returns>
         public UI FindUI(string uiName)
         {
             for (int i = 0; i < uiList.Count; i++)
@@ -171,7 +176,7 @@ namespace UIFramework
         /// <param name="worldPositionStays"></param>
         public void SetUiParent(Transform parent, bool worldPositionStays)
         {
-            if (parent)
+            if (!parent)
                 return;
 
             for (int i = 0; i < uiList.Count; i++)

@@ -7,6 +7,6 @@ public interface IBaseEventListener
     string[] OnGetEvents();
     bool HasEvents();
     bool Contains(string evt);
-    void OnNotifiy(string evt, params object[] args);
+    void OnNotify(string evt, params object[] args);
 }
 

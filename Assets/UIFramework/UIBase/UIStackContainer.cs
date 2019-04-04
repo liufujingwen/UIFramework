@@ -325,7 +325,7 @@ namespace UIFramework
         /// <param name="worldPositionStays"></param>
         public void SetUiParent(Transform parent, bool worldPositionStays)
         {
-            if (parent)
+            if (!parent)
                 return;
 
             List<UI> uiList = showStack.GetList();

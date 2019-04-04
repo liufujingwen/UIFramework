@@ -36,7 +36,7 @@ namespace UIFramework
             return UI.GameObject.FindComponent<T>(name);
         }
 
-        public override void OnNotifiy(string evt, params object[] args)
+        public override void OnNotify(string evt, params object[] args)
         {
         }
     }

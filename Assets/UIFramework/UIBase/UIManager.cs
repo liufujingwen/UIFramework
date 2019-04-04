@@ -40,7 +40,7 @@ namespace UIFramework
         private Dictionary<UIType, Canvas> canvasDic = new Dictionary<UIType, Canvas>();
 
         /// <summary>
-        /// Push和Pop忽略Mask的类型
+        /// 忽略Mask的类型
         /// </summary>
         public const UIType IgnoreMaskType = UIType.Tips | UIType.TopMask | UIType.Top;
 
@@ -173,7 +173,7 @@ namespace UIFramework
                     if (uiAttribute != null)
                     {
                         uiTypeDic[uiAttribute.UIName] = type;
-                        Register(uiAttribute.UIName, uiAttribute.UIType, uiAttribute.UIResType, uiAttribute.UICloseType, uiAttribute.HasAnimation, false);
+                        Register(uiAttribute.UIName, uiAttribute.UIType, uiAttribute.UIResType, uiAttribute.HasAnimation, false);
                     }
                 }
 
@@ -216,15 +216,13 @@ namespace UIFramework
         /// <param name="uiName">UI名字</param>
         /// <param name="uiType">UI类型</param>
         /// <param name="uiResType">UI加载方式</param>
-        /// <param name="uiCloseType">UI关闭方式</param>
         /// <param name="hasAnimation">UI是否有动画</param>
-        public void Register(string uiName, UIType uiType, UIResType uiResType, UICloseType uiCloseType, bool hasAnimation, bool isLuaUI)
+        public void Register(string uiName, UIType uiType, UIResType uiResType, bool hasAnimation, bool isLuaUI)
         {
             UIData uiData = new UIData();
             uiData.UiName = uiName;
             uiData.UiType = uiType;
             uiData.UIResType = uiResType;
-            uiData.UICloseType = uiCloseType;
             uiData.HasAnimation = hasAnimation;
             uiData.IsLuaUI = isLuaUI;
             uiData.ParentUIName = null;
@@ -254,22 +252,6 @@ namespace UIFramework
             uiRegisterDic.Add(uiName, uiData);
         }
 
-        /// <summary>
-        /// 加载UI
-        /// </summary>
-        /// <param name="uiName">ui名字</param>
-        /// <returns></returns>
-        public async Task LoadUIAsync(UI ui)
-        {
-            await LoadUI(ui);
-            //尝试加载加载LoadWithParent=true的子UI
-            await TryLoadChildUI(ui);
-
-            //保证所有UI只执行一次Awake
-            if (!ui.AwakeState)
-                ui.Awake();
-        }
-
         public UI CreateUI(string uiName)
         {
             //加载新UI
@@ -297,9 +279,25 @@ namespace UIFramework
         /// <summary>
         /// 加载UI
         /// </summary>
+        /// <param name="ui">UI</param>
+        /// <returns></returns>
+        public async Task LoadUIAsync(UI ui)
+        {
+            await LoadUiTask(ui);
+            //尝试加载加载LoadWithParent=true的子UI
+            await TryLoadChildUI(ui);
+
+            //保证所有UI只执行一次Awake
+            if (!ui.AwakeState)
+                ui.Awake();
+        }
+
+        /// <summary>
+        /// 加载UI
+        /// </summary>
         /// <param name="uiName">ui名字</param>
         /// <returns></returns>
-        private Task LoadUI(UI ui)
+        private Task LoadUiTask(UI ui)
         {
             if (ui.UIState == UIStateType.None)
                 LoadAsset(ui);
@@ -327,7 +325,7 @@ namespace UIFramework
                         if (childUi != null)
                         {
                             gameUI.AddChildUI(kv.Key, childUi);
-                            await LoadUI(childUi);
+                            await LoadUiTask(childUi);
                         }
                     }
                 }
@@ -338,9 +336,8 @@ namespace UIFramework
         /// 通过UIType设置界面的父节点
         /// </summary>
         /// <param name="ui">UI界面</param>
-        /// <param name="uiType">ui类型</param>
         /// <param name="worldPositionStays">If true, the parent-relative position, scale and rotation are modified such that</param>
-        public void SetUIParent(UI ui, UIType uiType, bool worldPositionStays)
+        public void SetUIParent(UI ui, bool worldPositionStays)
         {
             if (ui == null)
                 return;
@@ -349,12 +346,12 @@ namespace UIFramework
                 return;
 
             Canvas tempCanvas = null;
-            if (canvasDic.TryGetValue(uiType, out tempCanvas))
+            if (canvasDic.TryGetValue(ui.UiData.UiType, out tempCanvas))
             {
                 if (!ui.Transform.IsChildOf(tempCanvas.transform))
                     ui.Transform.SetParent(tempCanvas.transform, worldPositionStays);
             }
-            else if (uiType == UIType.Child)
+            else if (ui.UiData.UiType == UIType.Child)
             {
                 ChildUI childUi = ui as ChildUI;
                 if (childUi.ParentUI != null && childUi.ParentUI.ChildParentNode)
@@ -366,6 +363,13 @@ namespace UIFramework
                 {
                     ui.Transform.SetParent(childUi.ParentUI.Transform, worldPositionStays);
                 }
+            }
+
+            if (worldPositionStays)
+            {
+                ui.Transform.localScale = Vector3.one;
+                ui.Transform.localPosition = Vector3.zero;
+                ui.Transform.localRotation = Quaternion.identity;
             }
         }
 
@@ -411,8 +415,6 @@ namespace UIFramework
         /// <param name="animator"></param>
         public void NotifyAnimationFinish(Animator animator)
         {
-            UI tempUI = null;
-
             foreach (var kv in showDic)
             {
                 IUIContainer uiContainer = kv.Value;
@@ -442,7 +444,7 @@ namespace UIFramework
         /// <summary>
         /// 打开UI
         /// </summary>
-        /// <param name="ui">UI上下文</param>
+        /// <param name="ui">UI</param>
         /// <param name="args">传递到0nStart的参数</param>
         public void Open(UI ui, params object[] args)
         {

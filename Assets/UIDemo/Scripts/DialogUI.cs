@@ -7,7 +7,7 @@ using UIFramework;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-[UI("DialogUI", UIType.Dialog, UIResType.Resorces, UICloseType.Destroy, true)]
+[UI("DialogUI", UIType.Dialog, UIResType.Resorces, true)]
 public class DialogUI : UIMonoProxy
 {
     public override void OnAwake()

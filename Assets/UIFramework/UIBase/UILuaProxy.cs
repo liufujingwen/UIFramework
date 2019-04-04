@@ -54,12 +54,13 @@ namespace UIFramework
             luaUI?.OnDestroy();
             RemoveAction?.Invoke(this.UI.UiData.UiName);
             luaUI = null;
-
+            RemoveAction = null;
+            NewFunc = null;
         }
 
         public Component FindComponent(string name, Type type)
         {
-            if (this.UI == null || this.UI == null || !this.UI.Transform || type == null)
+            if (this.UI == null || !this.UI.Transform || type == null)
                 return null;
             GameObject tempGo = this.UI.Transform.FindGameObject(name);
             if (!tempGo)
@@ -67,9 +68,9 @@ namespace UIFramework
             return tempGo.GetComponent(type);
         }
 
-        public override void OnNotifiy(string evt, params object[] args)
+        public override void OnNotify(string evt, params object[] args)
         {
-            luaUI?.OnNotifiy(evt, args);
+            luaUI?.OnNotify(evt, args);
         }
     }
 }

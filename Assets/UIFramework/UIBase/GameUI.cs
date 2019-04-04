@@ -45,6 +45,7 @@ namespace UIFramework
             childUIContainer.AddChildUI(childUiName, childUi);
         }
 
+        //通过名字打开子UI
         public void OpenChildUI(string childUiName, params object[] args)
         {
             ChildUI childUi = childUIContainer.FindChildUi(childUiName);
@@ -55,6 +56,12 @@ namespace UIFramework
             }
 
             childUIContainer.Open(childUi, null, args);
+        }
+
+        //只打开一个子UI，已显示的UI会被关闭
+        public void OpenOneChildUi(string childUiName, params object[] args)
+        {
+            childUIContainer.CloseAllThenOpen(childUiName, args);
         }
 
         public void CloseChildUI(string childUiName)
@@ -100,16 +107,6 @@ namespace UIFramework
         {
             childUIContainer.Destroy();
             base.Destroy();
-        }
-
-        /// <summary>
-        /// UI回收到缓存池
-        /// </summary>
-        public void InPool()
-        {
-            if (this.UIState > UIStateType.Awake)
-                this.UIState = UIStateType.Awake;
-            childUIContainer.InPool();
         }
 
         //ui动画播放完成通知

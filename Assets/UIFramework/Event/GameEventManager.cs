@@ -103,7 +103,7 @@ public class GameEventManager : Singleton<GameEventManager>
             if (listener != null)
             {
                 if (listener.Contains(evt))
-                    listener.OnNotifiy(evt, args);
+                    listener.OnNotify(evt, args);
             }
         }
 

@@ -239,17 +239,46 @@ namespace UIFramework
             }
         }
 
-        /// <summary>
-        /// 父UI回池，子UI重置状态
-        /// </summary>
-        public void InPool()
+        public void CloseAllThenOpen(string uiName, params object[] args)
         {
-            showList.Clear();
-            foreach (var kv in childDic)
+            ChildUI childUi = FindChildUi(uiName);
+            if (childUi == null)
             {
-                if (kv.Value.UIState > UIStateType.Awake)
-                    kv.Value.UIState = UIStateType.Awake;
+                childUi = UIManager.Instance.CreateUI(uiName) as ChildUI;
+                this.AddChildUI(uiName, childUi);
             }
+
+            CloseAllThenOpenAsync(childUi, args);
+        }
+
+        private async void CloseAllThenOpenAsync(ChildUI childUi, params object[] args)
+        {
+            if (childUi == null)
+                return;
+
+            await WaitAnimationFinished();
+
+            UIManager.Instance.SetMask(true);
+
+            await UIManager.Instance.LoadUIAsync(childUi);
+
+            //要打开的窗口是否已经显示
+            bool showFlag = false;
+            for (int i = showList.Count - 1; i >= 0; i--)
+            {
+                ChildUI tempChildUi = showList[i];
+                if (tempChildUi.UiData.UiName != childUi.UiData.UiName)
+                    Close(tempChildUi.UiData.UiName, null);
+                else
+                    showFlag = true;
+            }
+
+            await WaitAnimationFinished();
+
+            if (!showFlag)
+                OpenAsync(childUi, null, args);
+
+            UIManager.Instance.SetMask(false);
         }
 
         public void Pop(Action callback)

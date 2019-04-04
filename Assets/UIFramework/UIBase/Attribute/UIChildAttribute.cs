@@ -14,14 +14,12 @@ namespace UIFramework
         /// <param name="uiName">UI名字</param>
         /// <param name="parentUIName">父窗口UI名字</param>
         /// <param name="uiResType">UI加载方式</param>
-        /// <param name="uiCloseType">UI关闭方式</param>
-        public UIChildAttribute(string uiName, string parentUIName, bool loadWithParent, UIResType uiResType, UICloseType uiCloseType, bool hasAnimation)
+        public UIChildAttribute(string uiName, string parentUIName, bool loadWithParent, UIResType uiResType, bool hasAnimation)
         {
             this.UIName = uiName;
             this.ParentUIName = parentUIName;
             this.LoadWithParent = loadWithParent;
             this.UIResType = uiResType;
-            this.UICloseType = uiCloseType;
             this.HasAnimation = hasAnimation;
         }
 
@@ -44,11 +42,6 @@ namespace UIFramework
         /// UI加载方式
         /// </summary>
         public UIResType UIResType;
-
-        /// <summary>
-        /// UI关闭方式
-        /// </summary>
-        public UICloseType UICloseType;
 
         /// <summary>
         /// UI是否有动画

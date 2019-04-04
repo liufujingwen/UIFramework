@@ -33,15 +33,6 @@ namespace UIFramework
     }
 
     /// <summary>
-    /// UI关闭方式
-    /// </summary>
-    public enum UICloseType
-    {
-        Hide,//隐藏不销毁，放回poolCanvas
-        Destroy,//直接销毁
-    }
-
-    /// <summary>
     /// UI动画状态
     /// </summary>
     public enum AnimationStateType
@@ -92,7 +83,7 @@ namespace UIFramework
             this.Transform = this.GameObject.transform;
             this.ChildParentNode = this.Transform.FindTransform("ChildParentNode");
 
-            UIManager.Instance.SetUIParent(this, this.UiData.UiType, false);
+            UIManager.Instance.SetUIParent(this, false);
 
             //记录所有Canvas初始化的sortingOrder
             Canvas[] tempCanvases = this.GameObject.GetComponentsInChildren<Canvas>(true);
@@ -285,7 +276,7 @@ namespace UIFramework
                 this.UIState = UIStateType.Disable;
                 GameEventManager.Instance.RemoveEvent(UIProxy);
                 OnDisable();
-                this.GameObject.SetActive(false);
+                this.GameObject?.SetActive(false);
             }
         }
 
@@ -313,9 +304,6 @@ namespace UIFramework
                 this.UIState = UIStateType.Destroy;
                 this.AnimationState = AnimationStateType.Destroy;
                 this.AwakeState = false;
-                this.IsPlayingAniamtionTask = null;
-                this.UIState = UIStateType.Awake;
-                this.AnimationState = AnimationStateType.None;
                 this.IsPlayingAniamtionTask = null;
                 this.Tcs = null;
             }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UIFramework;
 
-[UIAttribute("MaskUI", UIType.Top, UIResType.Resorces, UICloseType.Hide, false)]
+[UIAttribute("MaskUI", UIType.Top, UIResType.Resorces, false)]
 public class MaskUI : UIMonoProxy
 {
 

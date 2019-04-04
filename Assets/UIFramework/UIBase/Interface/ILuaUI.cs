@@ -21,6 +21,6 @@ namespace UIFramework
 
         void OnDestroy();
 
-        void OnNotifiy(string evt, params object[] args);
+        void OnNotify(string evt, params object[] args);
     }
 }

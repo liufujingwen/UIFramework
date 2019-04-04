@@ -52,7 +52,6 @@ public static class ExampleGenConfig
 
                 typeof(UIFramework.UIManager),
                 typeof(UIFramework.UIType),
-                typeof(UIFramework.UICloseType),
                 typeof(UIFramework.UIResType),
                 typeof(XUnityEx),
                 typeof(GameEventManager),

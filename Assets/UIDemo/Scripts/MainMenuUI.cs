@@ -7,7 +7,7 @@ using System;
 using UIFramework;
 using UnityEngine.EventSystems;
 
-[UIAttribute("MainMenuUI", UIType.Normal, UIResType.Resorces, UICloseType.Destroy, true)]
+[UIAttribute("MainMenuUI", UIType.Normal, UIResType.Resorces, true)]
 public class MainMenuUI : UIMonoProxy
 {
     public override void OnAwake()
@@ -59,7 +59,7 @@ public class MainMenuUI : UIMonoProxy
         Debug.Log("MainMenuUI OnDestroy");
     }
 
-    public override void OnNotifiy(string evt, params object[] args)
+    public override void OnNotify(string evt, params object[] args)
     {
     }
 }

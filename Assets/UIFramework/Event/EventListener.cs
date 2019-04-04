@@ -9,7 +9,7 @@ public abstract class EventListener : IBaseEventListener
 
     public abstract string[] OnGetEvents();
 
-    public abstract void OnNotifiy(string evt, params object[] args);
+    public abstract void OnNotify(string evt, params object[] args);
 
     public bool Contains(string evt)
     {

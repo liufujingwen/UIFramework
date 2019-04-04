@@ -7,7 +7,7 @@ using UIFramework;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-[UIChildAttribute("ChildUI1", "ParentUI", false, UIResType.Resorces, UICloseType.Hide, false)]
+[UIChildAttribute("ChildUI1", "ParentUI", false, UIResType.Resorces, false)]
 public class ChildUI1 : UIMonoProxy
 {
     public override void OnAwake()

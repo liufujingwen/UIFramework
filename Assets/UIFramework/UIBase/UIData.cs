@@ -24,11 +24,6 @@ namespace UIFramework
         public UIResType UIResType = UIResType.Resorces;
 
         /// <summary>
-        /// UI关闭方式
-        /// </summary>
-        public UICloseType UICloseType = UICloseType.Destroy;
-
-        /// <summary>
         /// UI是否有动画
         /// </summary>
         public bool HasAnimation = false;
