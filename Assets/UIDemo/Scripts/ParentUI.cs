@@ -35,6 +35,8 @@ public class ParentUI : UIMonoProxy
         CloseChildUI("ChildUI2");
         CloseChildUI("ChildUI3");
         OpenChildUI("ChildUI1");
+
+        //OpenOneChildUI("ChildUI1");
     }
 
     void OnClickTab2(PointerEventData eventData)
@@ -42,6 +44,8 @@ public class ParentUI : UIMonoProxy
         CloseChildUI("ChildUI1");
         CloseChildUI("ChildUI3");
         OpenChildUI("ChildUI2");
+
+        //OpenOneChildUI("ChildUI2");
     }
 
     void OnClickTab3(PointerEventData eventData)
@@ -49,6 +53,8 @@ public class ParentUI : UIMonoProxy
         CloseChildUI("ChildUI1");
         CloseChildUI("ChildUI2");
         OpenChildUI("ChildUI3");
+
+        //OpenOneChildUI("ChildUI3");
     }
 
     public override void OnStart(params object[] args)

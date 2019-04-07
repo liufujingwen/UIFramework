@@ -154,6 +154,9 @@ namespace UIFramework
 
         public virtual async Task StartAsync(params object[] args)
         {
+            if (this.UIState == UIStateType.None)
+                return;
+
             if (this.UIState == UIStateType.Awake)
             {
                 Start(args);
@@ -196,6 +199,9 @@ namespace UIFramework
 
         public async Task EnableAsync()
         {
+            if (this.UIState == UIStateType.None)
+                return;
+
             if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Disable)
             {
                 BeforeEnable();
@@ -242,6 +248,9 @@ namespace UIFramework
 
         public async Task DisableAsync()
         {
+            if (this.UIState == UIStateType.None)
+                return;
+
             if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Enable)
             {
                 BeforeDisable();
@@ -270,6 +279,9 @@ namespace UIFramework
 
         public virtual void Disable()
         {
+            if (this.UIState == UIStateType.None)
+                return;
+
             //只有状态为Start、Enable才能执行disable
             if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Enable)
             {
@@ -292,6 +304,9 @@ namespace UIFramework
 
         public virtual void Destroy()
         {
+            if (this.UIState == UIStateType.None)
+                return;
+
             Disable();
             if (this.UIState != UIStateType.Destroy)
             {

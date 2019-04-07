@@ -78,7 +78,9 @@ namespace UIFramework
 
             ChildUI childUI = null;
             if (childDic.TryGetValue(uiName, out childUI))
+            {
                 await childUI.DisableAsync();
+            }
 
             for (int i = 0; i < showList.Count; i++)
             {
