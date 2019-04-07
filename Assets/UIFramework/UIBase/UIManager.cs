@@ -252,7 +252,7 @@ namespace UIFramework
             uiRegisterDic.Add(uiName, uiData);
         }
 
-        public UI CreateUI(string uiName)
+        public GameUI CreateUI(string uiName)
         {
             //加载新UI
             UIData uiData = null;
@@ -264,14 +264,31 @@ namespace UIFramework
                 return null;
             }
 
-            UI ui = null;
-            if (!uiData.IsChildUI)
-                ui = new GameUI();
-            else
-                ui = new ChildUI();
+            if (uiData.IsChildUI)
+            {
+                Debug.LogError($"子UI:{uiName}不能使用CreateUI创建");
+                return null;
+            }
 
+            GameUI ui = new GameUI();
             ui.UiData = uiData;
             ui.Tcs = new TaskCompletionSource<bool>();
+
+            //创建子UI
+            if (ui.UiData.HasChildUI)
+            {
+                foreach (var kv in ui.UiData.ChildDic)
+                {
+                    ChildUI childUi = ui.FindChildUi(kv.Key);
+                    if (childUi != null)
+                        continue;
+
+                    childUi = new ChildUI();
+                    childUi.UiData = kv.Value;
+                    childUi.Tcs = new TaskCompletionSource<bool>();
+                    ui.AddChildUI(kv.Key, childUi);
+                }
+            }
 
             return ui;
         }
@@ -318,15 +335,7 @@ namespace UIFramework
                     {
                         GameUI gameUI = ui as GameUI;
                         ChildUI childUi = gameUI.FindChildUi(kv.Key);
-                        if (childUi != null)
-                            continue;
-
-                        childUi = UIManager.Instance.CreateUI(kv.Key) as ChildUI;
-                        if (childUi != null)
-                        {
-                            gameUI.AddChildUI(kv.Key, childUi);
-                            await LoadUiTask(childUi);
-                        }
+                        await LoadUiTask(childUi);
                     }
                 }
             }

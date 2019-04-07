@@ -18,19 +18,12 @@ namespace UIFramework
 
         public void Open(string uiName, Action<UI> callback, params object[] args)
         {
-            //ChildUI childUi = null;
-            //childDic.TryGetValue(uiName, out childUi);
+            ChildUI childUi = FindChildUi(uiName);
 
-            //if (childUi == null)
-            //{
-            //    childUi = UIManager.Instance.CreateUI(uiName) as ChildUI;
+            if (childUi == null)
+                return;
 
-            //}
-
-            //if (childUi == null)
-            //    return;
-
-            //OpenAsync(childUi, callback, args);
+            OpenAsync(childUi, callback, args);
         }
 
         public void Open(UI ui, Action<UI> callback, params object[] args)
@@ -64,7 +57,6 @@ namespace UIFramework
 
             callback?.Invoke(childUi);
         }
-
 
         public void Close(string uiName, Action callback)
         {
@@ -174,7 +166,7 @@ namespace UIFramework
             {
                 foreach (var kv in childDic)
                 {
-                    if (kv.Value.UiData.IsChildUI)
+                    if (kv.Value.UiData.LoadWithParent && !kv.Value.AwakeState)
                         kv.Value.Awake();
                 }
             }
@@ -241,18 +233,12 @@ namespace UIFramework
 
         public void CloseAllThenOpen(string uiName, params object[] args)
         {
-            ChildUI childUi = FindChildUi(uiName);
-            if (childUi == null)
-            {
-                childUi = UIManager.Instance.CreateUI(uiName) as ChildUI;
-                this.AddChildUI(uiName, childUi);
-            }
-
-            CloseAllThenOpenAsync(childUi, args);
+            CloseAllThenOpenAsync(uiName, args);
         }
 
-        private async void CloseAllThenOpenAsync(ChildUI childUi, params object[] args)
+        private async void CloseAllThenOpenAsync(string uiName, params object[] args)
         {
+            ChildUI childUi = FindChildUi(uiName);
             if (childUi == null)
                 return;
 

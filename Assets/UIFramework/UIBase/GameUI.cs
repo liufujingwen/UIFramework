@@ -48,14 +48,7 @@ namespace UIFramework
         //通过名字打开子UI
         public void OpenChildUI(string childUiName, params object[] args)
         {
-            ChildUI childUi = childUIContainer.FindChildUi(childUiName);
-            if (childUi == null)
-            {
-                childUi = UIManager.Instance.CreateUI(childUiName) as ChildUI;
-                this.AddChildUI(childUiName, childUi);
-            }
-
-            childUIContainer.Open(childUi, null, args);
+            childUIContainer.Open(childUiName, null, args);
         }
 
         //只打开一个子UI，已显示的UI会被关闭
