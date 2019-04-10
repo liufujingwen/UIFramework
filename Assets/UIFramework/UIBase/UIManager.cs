@@ -664,6 +664,22 @@ namespace UIFramework
         }
 
         /// <summary>
+        /// 删除一个Ui，如果容器里面有多个，那么只会删除最上面那个
+        /// </summary>
+        /// <param name="uiName"></param>
+        public void RemoveOne(string uiName)
+        {
+            UIData uiData = null;
+            uiRegisterDic.TryGetValue(uiName, out uiData);
+            if (uiData == null)
+                return;
+
+            IUIContainer uiContainer = null;
+            if (showDic.TryGetValue(uiData.UiType, out uiContainer))
+                uiContainer?.RemoveOne(uiName);
+        }
+
+        /// <summary>
         /// 获取在C#端对应的脚本Type
         /// </summary>
         /// <param name="uiName">UI名字</param>
@@ -684,6 +700,21 @@ namespace UIFramework
             UIManager.Instance.ClearMask();
             foreach (var kv in showDic)
                 kv.Value.Clear();
+            ClosingAll = false;
+        }
+
+        /// <summary>
+        /// 清除指定类型容器的UI
+        /// </summary>
+        public void ClearByType(UIType uiType)
+        {
+            ClosingAll = true;
+            UIManager.Instance.ClearMask();
+            foreach (var kv in showDic)
+            {
+                if ((kv.Key & uiType) != 0)
+                    kv.Value.Clear();
+            }
             ClosingAll = false;
         }
 

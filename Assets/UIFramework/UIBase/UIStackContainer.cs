@@ -295,6 +295,26 @@ namespace UIFramework
             }
         }
 
+
+        /// <summary>
+        /// 从上往下删除指定名字的一个一个UI
+        /// </summary>
+        /// <param name="uiName">要删除的UI</param>
+        public void RemoveOne(string uiName)
+        {
+            List<UI> uiList = showStack.GetList();
+            for (int i = uiList.Count - 1; i >= 0; i--)
+            {
+                UI ui = uiList[i];
+                if (ui.UiData.UiName == uiName)
+                {
+                    uiList.RemoveAt(i);
+                    ui.Destroy();
+                    break;
+                }
+            }
+        }
+
         //清除所有UI
         public void Clear()
         {

@@ -16,6 +16,7 @@ namespace UIFramework
         void PopThenOpen(string uiName, params object[] args);
         void PopAllThenOpen(string uiName, params object[] args);
         void Remove(string uiName);
+        void RemoveOne(string uiName);
         void Clear();
         void SetUiParent(Transform parent, bool worldPositionStays);
     }

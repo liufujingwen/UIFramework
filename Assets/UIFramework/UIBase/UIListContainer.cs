@@ -156,6 +156,24 @@ namespace UIFramework
         }
 
         /// <summary>
+        /// 从上往下删除指定名字的一个一个UI
+        /// </summary>
+        /// <param name="uiName">要删除的UI</param>
+        public void RemoveOne(string uiName)
+        {
+            for (int i = 0; i < uiList.Count; i++)
+            {
+                UI ui = uiList[i];
+                if (ui != null && ui.UiData.UiName == uiName)
+                {
+                    uiList.RemoveAt(i);
+                    ui.Destroy();
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
         /// 清除所有UI
         /// </summary>
         public void Clear()

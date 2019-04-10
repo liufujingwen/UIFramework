@@ -123,17 +123,34 @@ namespace UIFramework
         /// <param name="uiName"></param>
         public void Remove(string uiName)
         {
-            ChildUI childUI = null;
             for (int i = showList.Count - 1; i >= 0; i--)
             {
                 ChildUI showChild = showList[i];
                 if (showChild != null && showChild.UiData.UiName == uiName)
-                {
-                    childUI = showChild;
                     showList.RemoveAt(i);
-                }
             }
 
+            ChildUI childUI = null;
+            childDic.TryGetValue(uiName,out childUI);
+            childUI?.Destroy();
+            childDic?.Remove(uiName);
+        }
+
+        /// <summary>
+        /// 从上往下删除指定名字的一个一个UI
+        /// </summary>
+        /// <param name="uiName">要删除的UI</param>
+        public void RemoveOne(string uiName)
+        {
+            for (int i = showList.Count - 1; i >= 0; i--)
+            {
+                ChildUI showChild = showList[i];
+                if (showChild != null && showChild.UiData.UiName == uiName)
+                    showList.RemoveAt(i);
+            }
+
+            ChildUI childUI = null;
+            childDic.TryGetValue(uiName, out childUI);
             childUI?.Destroy();
             childDic?.Remove(uiName);
         }
