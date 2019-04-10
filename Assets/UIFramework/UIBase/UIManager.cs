@@ -448,11 +448,6 @@ namespace UIFramework
                 if (ui != null && ui.GameObject && ui.GameObject == animator.gameObject)
                     ui.OnNotifyAnimationState();
             }
-            //foreach (var kv in showDic)
-            //{
-            //    IUIContainer uiContainer = kv.Value;
-            //    uiContainer.OnNotifyAnimationFinish(animator);
-            //}
         }
 
         /// <summary>
