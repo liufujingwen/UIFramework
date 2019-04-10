@@ -68,10 +68,10 @@ namespace UIFramework
         public AnimationStateType AnimationState = AnimationStateType.None;
         public bool AwakeState = false;
         public int SortingOrder = 0;
+        public UIProxy UIProxy = null;
 
         protected Dictionary<Canvas, int> CanvasDic = null;
         protected Animator Animator = null;
-        protected UIProxy UIProxy = null;
 
         //当前是否播放动画
         protected TaskCompletionSource<bool> IsPlayingAniamtionTask = null;
@@ -138,6 +138,7 @@ namespace UIFramework
                 AwakeState = true;
 
                 this.OnAwake();
+                UIManager.Instance.NotifyAwake(this);
                 this.GameObject.SetActive(false);
             }
         }
@@ -184,6 +185,7 @@ namespace UIFramework
                 this.UIState = UIStateType.Start;
                 this.GameObject?.SetActive(true);
                 this.OnStart(args);
+                UIManager.Instance.NotifyStart(this);
             }
         }
 
@@ -233,6 +235,7 @@ namespace UIFramework
                 this.GameObject?.SetActive(true);
                 this.OnEnable();
                 GameEventManager.Instance.RegisterEvent(UIProxy);
+                UIManager.Instance.NotifyEnable(this);
             }
         }
 
@@ -287,6 +290,7 @@ namespace UIFramework
             {
                 this.UIState = UIStateType.Disable;
                 GameEventManager.Instance.RemoveEvent(UIProxy);
+                UIManager.Instance.NotifyDisable(this);
                 OnDisable();
                 this.GameObject?.SetActive(false);
             }
@@ -310,6 +314,7 @@ namespace UIFramework
             Disable();
             if (this.UIState != UIStateType.Destroy)
             {
+                UIManager.Instance.NotifyDestroy(this);
                 this.OnDestroy();
 
                 if (this.GameObject)
@@ -348,10 +353,6 @@ namespace UIFramework
         public Task GetPlayingAniamtionTask()
         {
             return IsPlayingAniamtionTask.Task;
-        }
-
-        public virtual void NotifyAnimationState(Animator animator)
-        {
         }
 
         public void OnNotifyAnimationState()

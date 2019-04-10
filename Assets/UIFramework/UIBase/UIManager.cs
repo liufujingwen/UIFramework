@@ -10,8 +10,15 @@ namespace UIFramework
     /// <summary>
     /// UI管理器
     /// </summary>
-    public class UIManager : Singleton<UIManager>
+    public class UIManager : Singleton<UIManager>, IUINotify
     {
+        //UI生命周期事件
+        public const string EVENT_UI_AWAKE = "EVENT_UI_AWAKE";//UI执行Awake通知
+        public const string EVENT_UI_START = "EVENT_UI_START";//UI执行Start通知
+        public const string EVENT_UI_ENABLE = "EVENT_UI_ENABLE";//UI执行Enable通知
+        public const string EVENT_UI_DISABLE = "EVENT_UI_DISABLE";//UI执行Disable通知
+        public const string EVENT_UI_DESTROY = "EVENT_UI_DESTROY";//UI执行Destroy通知
+
         //所有一级UI必须注册后才能创建
         private Dictionary<string, UIData> uiRegisterDic = new Dictionary<string, UIData>();
 
@@ -54,8 +61,19 @@ namespace UIFramework
         /// </summary>
         public bool ClosingAll = false;
 
+        /// <summary>
+        /// 当前显示的UI,包含子UI
+        /// </summary>
+        List<UI> showList = new List<UI>();
+
+        /// <summary>
+        /// 已加载的所有UI
+        /// </summary>
+        List<UI> allList = new List<UI>();
+
         public void Init()
         {
+            AddUiNotify(this);
             InitTypes();
             ProcessingUIDataMapping();
             InitUIRoot(UIResType.Resorces);
@@ -424,11 +442,17 @@ namespace UIFramework
         /// <param name="animator"></param>
         public void NotifyAnimationFinish(Animator animator)
         {
-            foreach (var kv in showDic)
+            for (int i = 0; i < showList.Count; i++)
             {
-                IUIContainer uiContainer = kv.Value;
-                uiContainer.OnNotifyAnimationFinish(animator);
+                UI ui = showList[i];
+                if (ui != null && ui.GameObject && ui.GameObject == animator.gameObject)
+                    ui.OnNotifyAnimationState();
             }
+            //foreach (var kv in showDic)
+            //{
+            //    IUIContainer uiContainer = kv.Value;
+            //    uiContainer.OnNotifyAnimationFinish(animator);
+            //}
         }
 
         /// <summary>
@@ -707,5 +731,117 @@ namespace UIFramework
         {
             return $"UI/{uiName}";
         }
+
+        #region IUINotify
+
+        List<IUINotify> nofifyList = new List<IUINotify>();
+
+        public void AddUiNotify(IUINotify notify)
+        {
+            if (notify == null)
+                return;
+            if (!nofifyList.Contains(notify))
+                nofifyList.Add(notify);
+        }
+
+        public void RemoveUiNotify(IUINotify notify)
+        {
+            if (notify == null)
+                return;
+            nofifyList.Remove(notify);
+        }
+
+        public void NotifyAwake(UI ui)
+        {
+            for (int i = 0; i < nofifyList.Count; i++)
+            {
+                IUINotify notify = nofifyList[i];
+                notify?.OnAwake(ui);
+            }
+        }
+
+        public void NotifyStart(UI ui)
+        {
+            for (int i = 0; i < nofifyList.Count; i++)
+            {
+                IUINotify notify = nofifyList[i];
+                notify?.OnStart(ui);
+            }
+        }
+
+        public void NotifyEnable(UI ui)
+        {
+            for (int i = 0; i < nofifyList.Count; i++)
+            {
+                IUINotify notify = nofifyList[i];
+                notify?.OnEnable(ui);
+            }
+        }
+
+        public void NotifyDisable(UI ui)
+        {
+            for (int i = 0; i < nofifyList.Count; i++)
+            {
+                IUINotify notify = nofifyList[i];
+                notify?.OnDisable(ui);
+            }
+        }
+
+        public void NotifyDestroy(UI ui)
+        {
+            for (int i = 0; i < nofifyList.Count; i++)
+            {
+                IUINotify notify = nofifyList[i];
+                notify?.OnDestroy(ui);
+            }
+        }
+
+        public void OnAwake(UI ui)
+        {
+            if (ui == null)
+                return;
+
+            allList.Add(ui);
+            GameEventManager.Instance.Notify(EVENT_UI_AWAKE, ui);
+        }
+
+        public void OnStart(UI ui)
+        {
+            if (ui == null)
+                return;
+
+            GameEventManager.Instance.Notify(EVENT_UI_START, ui);
+        }
+
+        public void OnEnable(UI ui)
+        {
+            if (ui == null)
+                return;
+
+            GameEventManager.Instance.Notify(EVENT_UI_ENABLE, ui);
+
+            if (!showList.Contains(ui))
+                showList.Add(ui);
+        }
+
+        public void OnDisable(UI ui)
+        {
+            if (ui == null)
+                return;
+
+            GameEventManager.Instance.Notify(EVENT_UI_DISABLE, ui);
+            showList.Remove(ui);
+        }
+
+        public void OnDestroy(UI ui)
+        {
+            if (ui == null)
+                return;
+
+            allList.Remove(ui);
+            GameEventManager.Instance.Notify(EVENT_UI_DESTROY, ui);
+        }
+
+        #endregion
     }
 }

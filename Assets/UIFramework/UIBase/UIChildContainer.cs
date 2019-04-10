@@ -288,16 +288,5 @@ namespace UIFramework
         {
             UnityEngine.Debug.LogErrorFormat("Todo...");
         }
-
-        //通知动画播放完成
-        public void OnNotifyAnimationFinish(UnityEngine.Animator animator)
-        {
-            for (int i = 0; i < showList.Count; i++)
-            {
-                UI ui = showList[i];
-                if (ui != null && ui.GameObject == animator.gameObject)
-                    ui.OnNotifyAnimationState();
-            }
-        }
     }
 }

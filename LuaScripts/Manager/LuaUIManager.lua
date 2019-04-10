@@ -3,7 +3,6 @@ LuaUIManager = Class("LuaUIManager")
 require("Manager/LuaUI")
 
 local ClassType = {}
-local ClassObj = {}
 
 --注册UI
 -- @super 父类
@@ -25,29 +24,6 @@ function LuaUIManager.Register(super, uiName, uiType, uiResType, uiCloseType, ha
 
 end
 
-
---查找ui
---@name 名字
-function LuaUIManager.FindClassType(name)
-    for k, v in pairs(ClassObj) do
-        if k == name then
-            return v
-        end
-    end
-    return nil
-end
-
---移除ui
---name 名字
-function LuaUIManager.RemoveClassType(name)
-    for k, v in pairs(ClassObj) do
-        if k == name then
-            ClassObj[k] = nil
-            break
-        end
-    end
-end
-
 --创建一个LuaUI的实例
 --@name LuaUI脚本名字
 --@gameUI C#的GameUI
@@ -64,9 +40,21 @@ function LuaUIManager.New(uiName, uiProxy)
         end
     end
     local obj = class.New(uiName, uiProxy)
-    ClassObj[uiName] = obj
-
+    uiProxy:SetLuaTable(obj)
     return obj
 
 end
 
+
+--打开UI
+--@uiName 打开的UI名字
+function LuaUIManager.Open(uiName, ...)
+    CsXUiManager.Instance:Open(uiName,...)
+end
+
+
+--关闭UI
+--@uiName 关闭的UI名字
+function LuaUIManager.Close(uiName)
+    CsXUiManager.Instance:Close(uiName)
+end

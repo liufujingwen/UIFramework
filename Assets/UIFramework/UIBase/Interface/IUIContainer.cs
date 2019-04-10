@@ -18,6 +18,5 @@ namespace UIFramework
         void Remove(string uiName);
         void Clear();
         void SetUiParent(Transform parent, bool worldPositionStays);
-        void OnNotifyAnimationFinish(Animator animator);//通知动画播放完成
     }
 }

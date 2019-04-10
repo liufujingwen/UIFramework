@@ -339,17 +339,5 @@ namespace UIFramework
                 }
             }
         }
-
-        //通知动画播放完成
-        public void OnNotifyAnimationFinish(Animator animator)
-        {
-            List<UI> uiList = showStack.GetList();
-            for (int i = 0; i < uiList.Count; i++)
-            {
-                UI ui = uiList[i];
-                if (ui != null)
-                    ui.NotifyAnimationState(animator);
-            }
-        }
     }
 }

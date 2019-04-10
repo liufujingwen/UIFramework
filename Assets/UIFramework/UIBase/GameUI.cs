@@ -101,14 +101,5 @@ namespace UIFramework
             childUIContainer.Destroy();
             base.Destroy();
         }
-
-        //ui动画播放完成通知
-        public override void NotifyAnimationState(Animator animator)
-        {
-            if (this.GameObject == animator.gameObject)
-                this.OnNotifyAnimationState();
-            else
-                childUIContainer.OnNotifyAnimationFinish(animator);
-        }
     }
 }

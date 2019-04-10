@@ -7,8 +7,8 @@ namespace UIFramework
 {
     public class UILuaProxy : UIProxy
     {
+        public LuaTable UiLuaTable = null;
         ILuaUI luaUI = null;
-        static Action<string> RemoveAction = null;
         static Func<string, UILuaProxy, ILuaUI> NewFunc = null;
 
         public UILuaProxy(UI ui)
@@ -17,45 +17,46 @@ namespace UIFramework
             if (NewFunc == null)
                 NewFunc = Main.Instance.LuaEnv.Global.GetInPath<Func<string, UILuaProxy, ILuaUI>>("LuaUIManager.New");
 
-            if (RemoveAction == null)
-                RemoveAction = Main.Instance.LuaEnv.Global.GetInPath<Action<string>>("LuaUIManager.RemoveClassType");
-
             if (NewFunc != null)
-                luaUI = NewFunc(this.UI.UiData.UiName, this);
+                this.luaUI = NewFunc(this.UI.UiData.UiName, this);
         }
+
+        public void SetLuaTable(LuaTable uiLuaTable)
+        {
+            this.UiLuaTable = uiLuaTable;
+        }
+
 
         public override string[] OnGetEvents()
         {
-            return luaUI.OnGetEvents();
+            return this.luaUI.OnGetEvents();
         }
 
         public override void OnAwake()
         {
-            luaUI?.OnAwake();
+            this.luaUI?.OnAwake();
         }
 
         public override void OnStart(params object[] args)
         {
-            luaUI?.OnStart(args);
+            this.luaUI?.OnStart(args);
         }
 
         public override void OnEnable()
         {
-            luaUI?.OnEnable();
+            this.luaUI?.OnEnable();
         }
 
         public override void OnDisable()
         {
-            luaUI?.OnDisable();
+            this.luaUI?.OnDisable();
         }
 
         public override void OnDestroy()
         {
-            luaUI?.OnDestroy();
-            RemoveAction?.Invoke(this.UI.UiData.UiName);
-            luaUI = null;
-            RemoveAction = null;
-            NewFunc = null;
+            this.luaUI?.OnDestroy();
+            this.UiLuaTable = null;
+            this.luaUI = null;
         }
 
         public Component FindComponent(string name, Type type)
@@ -70,7 +71,7 @@ namespace UIFramework
 
         public override void OnNotify(string evt, params object[] args)
         {
-            luaUI?.OnNotify(evt, args);
+            this.luaUI?.OnNotify(evt, args);
         }
     }
 }
