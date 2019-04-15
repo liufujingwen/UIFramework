@@ -228,24 +228,13 @@ namespace UIFramework
             }
         }
 
-
-        public void BeforeDisable()
+        public void Disable()
         {
             //父UI执行Disable之前，有动画的子UI需要播放退场动画
             for (int i = 0; i < showList.Count; i++)
             {
                 ChildUI childUI = showList[i];
-                if (childUI != null && childUI.UiData.HasAnimation)
-                    childUI.DisableAsync().ConfigureAwait(true);
-            }
-        }
-
-        public void Disable()
-        {
-            for (int i = 0; i < showList.Count; i++)
-            {
-                ChildUI childUI = showList[i];
-                if (childUI != null && !childUI.UiData.HasAnimation)
+                if (childUI != null)
                     childUI.DisableAsync().ConfigureAwait(true);
             }
         }

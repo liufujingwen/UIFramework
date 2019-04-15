@@ -69,31 +69,15 @@ namespace UIFramework
             childUIContainer.TryAwake();
         }
 
-        /// <summary>
-        /// 记录在已显示列表的UI需要执行Enable
-        /// </summary>
-        public override void BeforeEnable()
+        public override void EnableChild()
         {
-            base.BeforeEnable();
             childUIContainer.Enable();
         }
 
-        /// <summary>
-        /// 所有已显示的子UI播放退场动画
-        /// </summary>
-
-        public override void BeforeDisable()
+        public override void DisableChild()
         {
-            base.BeforeDisable();
             //有动画的子UI退场
-            childUIContainer.BeforeDisable();
-        }
-
-        public override void Disable()
-        {
-            //没有动画的子UI退场
             childUIContainer.Disable();
-            base.Disable();
         }
 
         public override void Destroy()

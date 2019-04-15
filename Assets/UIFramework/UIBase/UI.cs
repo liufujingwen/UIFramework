@@ -161,8 +161,9 @@ namespace UIFramework
             if (this.UIState == UIStateType.Awake)
             {
                 Start(args);
-                BeforeEnable();
+                EnableChild();
                 Enable();
+
                 this.AnimationState = AnimationStateType.Start;
 
                 //播放进场动画
@@ -206,8 +207,8 @@ namespace UIFramework
 
             if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Disable)
             {
-                BeforeEnable();
                 Enable();
+                EnableChild();
                 this.AnimationState = AnimationStateType.Disable;
 
                 //播放Resume动画
@@ -223,7 +224,7 @@ namespace UIFramework
             }
         }
 
-        public virtual void BeforeEnable()
+        public virtual void EnableChild()
         {
         }
 
@@ -256,7 +257,7 @@ namespace UIFramework
 
             if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Enable)
             {
-                BeforeDisable();
+                DisableChild();
                 this.AnimationState = AnimationStateType.Disable;
 
                 //播放暂停动画
@@ -273,10 +274,7 @@ namespace UIFramework
             }
         }
 
-        /// <summary>
-        /// 播放动画之前执行
-        /// </summary>
-        public virtual void BeforeDisable()
+        public virtual void DisableChild()
         {
         }
 

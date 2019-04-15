@@ -60,7 +60,7 @@ public class ParentUI : UIMonoProxy
     public override void OnStart(params object[] args)
     {
         Debug.Log("ParentUI OnStart");
-        OpenChildUI("ChildUI1");
+        OpenChildUI("ChildUI2");
     }
 
     public override void OnEnable()
