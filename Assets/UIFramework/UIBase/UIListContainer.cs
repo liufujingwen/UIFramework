@@ -72,6 +72,8 @@ namespace UIFramework
             //释放mask
             if ((this.UIType & UIManager.IgnoreMaskType) == 0)
                 UIManager.Instance.SetMask(false);
+
+            callback?.Invoke(ui);
         }
 
 
