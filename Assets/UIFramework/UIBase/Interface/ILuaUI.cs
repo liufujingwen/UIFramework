@@ -10,6 +10,7 @@ namespace UIFramework
     public interface ILuaUI
     {
         string[] OnGetEvents();
+        void SetGameObject();
 
         void OnAwake();
 

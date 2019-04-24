@@ -50,11 +50,13 @@ namespace UIFramework
     public enum UIStateType
     {
         None,
+        Loading,//资源正在加载
         Awake,
         Start,
         Enable,
         Disable,
         Destroy,
+        Release,//资源已释放
     }
 
     public abstract class UI
@@ -75,6 +77,26 @@ namespace UIFramework
 
         //当前是否播放动画
         protected TaskCompletionSource<bool> IsPlayingAniamtionTask = null;
+
+        protected UI(UIData uiData)
+        {
+            this.UiData = uiData;
+            Tcs = new TaskCompletionSource<bool>();
+
+            SortingOrder = 0;
+
+            if (UiData.IsLuaUI)
+            {
+                UIProxy = new UILuaProxy();
+            }
+            else
+            {
+                Type type = UIManager.Instance.GetType(UiData.UiName);
+                UIProxy = Activator.CreateInstance(type) as UIProxy;
+            }
+
+            UIProxy?.SetUi(this);
+        }
 
         public void SetGameObject(GameObject gameObject)
         {
@@ -99,18 +121,7 @@ namespace UIFramework
 
             this.GameObject.SetActive(false);
 
-            if (this.UiData.IsLuaUI)
-            {
-                //创建lua代理
-                this.UIProxy = new UILuaProxy(this);
-            }
-            else
-            {
-                //创建Mono代理
-                System.Type type = UIManager.Instance.GetType(this.UiData.UiName);
-                this.UIProxy = System.Activator.CreateInstance(type) as UIProxy;
-                this.UIProxy.SetUi(this);
-            }
+            UIProxy.SetGameObejct();
         }
 
         /// <summary>
@@ -132,7 +143,7 @@ namespace UIFramework
 
         public virtual void Awake()
         {
-            if (this.UIState == UIStateType.None)
+            if (this.UIState <= UIStateType.Loading)
             {
                 this.UIState = UIStateType.Awake;
                 AwakeState = true;
@@ -155,7 +166,7 @@ namespace UIFramework
 
         public virtual async Task StartAsync(params object[] args)
         {
-            if (this.UIState == UIStateType.None)
+            if (this.UIState <= UIStateType.Loading)
                 return;
 
             if (this.UIState == UIStateType.Awake)
@@ -202,7 +213,7 @@ namespace UIFramework
 
         public async Task EnableAsync()
         {
-            if (this.UIState == UIStateType.None)
+            if (this.UIState <= UIStateType.Loading)
                 return;
 
             if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Disable)
@@ -235,7 +246,17 @@ namespace UIFramework
                 this.UIState = UIStateType.Enable;
                 this.GameObject?.SetActive(true);
                 this.OnEnable();
-                GameEventManager.Instance.RegisterEvent(UIProxy);
+                
+                //注册事件监听
+                if (UIProxy.Events != null)
+                {
+                    for (int i = 0; i < UIProxy.Events.Length; i++)
+                    {
+                        string evt = UIProxy.Events[i];
+                        GameEventManager.Instance.RegisterEvent(evt, UIProxy.OnNotify);
+                    }
+                }
+
                 UIManager.Instance.NotifyEnable(this);
             }
         }
@@ -252,7 +273,7 @@ namespace UIFramework
 
         public async Task DisableAsync()
         {
-            if (this.UIState == UIStateType.None)
+            if (this.UIState <= UIStateType.Loading)
                 return;
 
             if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Enable)
@@ -280,14 +301,23 @@ namespace UIFramework
 
         public virtual void Disable()
         {
-            if (this.UIState == UIStateType.None)
+            if (this.UIState <= UIStateType.Loading)
                 return;
 
             //只有状态为Start、Enable才能执行disable
             if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Enable)
             {
                 this.UIState = UIStateType.Disable;
-                GameEventManager.Instance.RemoveEvent(UIProxy);
+
+                if (UIProxy.Events != null)
+                {
+                    for (int i = 0; i < UIProxy.Events.Length; i++)
+                    {
+                        string evt = UIProxy.Events[i];
+                        GameEventManager.Instance.RemoveEvent(evt, UIProxy.OnNotify);
+                    }
+                }
+
                 UIManager.Instance.NotifyDisable(this);
                 OnDisable();
                 this.GameObject?.SetActive(false);
@@ -306,7 +336,7 @@ namespace UIFramework
 
         public virtual void Destroy()
         {
-            if (this.UIState == UIStateType.None)
+            if (this.UIState <= UIStateType.Loading)
                 return;
 
             Disable();

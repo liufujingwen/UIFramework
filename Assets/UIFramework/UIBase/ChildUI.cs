@@ -10,6 +10,10 @@ namespace UIFramework
     {
         public GameUI ParentUI = null;
 
+        public ChildUI(UIData uiData) : base(uiData)
+        {
+        }
+
         public override void Awake()
         {
             base.Awake();

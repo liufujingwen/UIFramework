@@ -137,6 +137,7 @@ namespace UIFramework
                 await curUi.DisableAsync();
                 showStack.Pop();
                 curUi.Destroy();
+                UIManager.Instance.RealseUi(curUi);
             }
 
             //显示前一个界面
@@ -205,6 +206,7 @@ namespace UIFramework
                 await currentUi.DisableAsync();
                 showStack.Pop();
                 currentUi.Destroy();
+                UIManager.Instance.RealseUi(currentUi);
             }
 
             poping = false;
@@ -266,6 +268,7 @@ namespace UIFramework
                 await curUi.DisableAsync();
                 showStack.Pop();
                 curUi.Destroy();
+                UIManager.Instance.RealseUi(curUi);
             }
 
             poping = false;
@@ -291,6 +294,7 @@ namespace UIFramework
                 {
                     uiList.RemoveAt(i);
                     ui.Destroy();
+                    UIManager.Instance.RealseUi(ui);
                 }
             }
         }
@@ -310,6 +314,7 @@ namespace UIFramework
                 {
                     uiList.RemoveAt(i);
                     ui.Destroy();
+                    UIManager.Instance.RealseUi(ui);
                     break;
                 }
             }
@@ -328,6 +333,7 @@ namespace UIFramework
                     UI ui = uiList[i];
                     uiList.RemoveAt(i);
                     ui.Destroy();
+                    UIManager.Instance.RealseUi(ui);
                 }
             }
 

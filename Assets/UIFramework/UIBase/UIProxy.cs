@@ -9,19 +9,22 @@ using static UGUIEventListener;
 
 namespace UIFramework
 {
-    public abstract class UIProxy : EventListener
+    public abstract class UIProxy
     {
-        public void SetUi(UI ui)
+        public UI UI = null;
+        public GameObject GameObject = null;
+        public Transform Transform = null;
+        public string[] Events = null;
+
+        public abstract void SetUi(UI ui);
+
+        public virtual void SetGameObejct()
         {
-            this.UI = ui;
+            GameObject = UI.GameObject;
+            Transform = UI.Transform;
         }
 
-        public UI UI;
-
-        public override string[] OnGetEvents()
-        {
-            return null;
-        }
+        public abstract string[] OnGetEvents();
 
         public abstract void OnAwake();
 
@@ -32,6 +35,8 @@ namespace UIFramework
         public abstract void OnDisable();
 
         public abstract void OnDestroy();
+
+        public abstract void OnNotify(string evt, params object[] args);
 
         public GameObject FindGameObject(string name)
         {

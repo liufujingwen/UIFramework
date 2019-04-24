@@ -8,6 +8,8 @@ namespace UIFramework
 {
     public class GameUI : UI
     {
+        public GameUI(UIData uiData) : base(uiData) { }
+
         //保存子UI
         private UIChildContainer childUIContainer = new UIChildContainer();
 

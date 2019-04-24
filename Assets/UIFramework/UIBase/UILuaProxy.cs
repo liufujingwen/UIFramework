@@ -11,14 +11,24 @@ namespace UIFramework
         ILuaUI luaUI = null;
         static Func<string, UILuaProxy, ILuaUI> NewFunc = null;
 
-        public UILuaProxy(UI ui)
+        public override void SetUi(UI ui)
         {
-            this.SetUi(ui);
+            this.UI = ui;
+
             if (NewFunc == null)
                 NewFunc = Main.Instance.LuaEnv.Global.GetInPath<Func<string, UILuaProxy, ILuaUI>>("LuaUIManager.New");
 
             if (NewFunc != null)
                 this.luaUI = NewFunc(this.UI.UiData.UiName, this);
+
+            this.Events = OnGetEvents();
+        }
+
+        //UI设置GameObject
+        public override void SetGameObejct()
+        {
+            base.SetGameObejct();
+            this.luaUI?.SetGameObject();
         }
 
         public void SetLuaTable(LuaTable uiLuaTable)

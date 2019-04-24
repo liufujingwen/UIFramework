@@ -5,9 +5,12 @@ function LuaUI:Ctor(name, uiProxy)
     self.Name = name
     self.UIProxy = uiProxy
     self.UI = uiProxy.UI
+
+end
+
+function LuaUI:SetGameObject()
     self.Transform = self.UI.Transform
     self.GameObject = self.UI.GameObject
-
 end
 
 function LuaUI:OnAwake()

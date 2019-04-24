@@ -115,6 +115,7 @@ namespace UIFramework
             await ui.DisableAsync();
             uiList.Remove(ui);
             ui.Destroy();
+            UIManager.Instance.RealseUi(ui);
 
             //释放Mask
             if ((this.UIType & UIManager.IgnoreMaskType) == 0)
@@ -153,6 +154,8 @@ namespace UIFramework
                 {
                     uiList.RemoveAt(i);
                     ui.Destroy();
+                    UIManager.Instance.RealseUi(ui);
+                    break;
                 }
             }
         }
@@ -170,6 +173,7 @@ namespace UIFramework
                 {
                     uiList.RemoveAt(i);
                     ui.Destroy();
+                    UIManager.Instance.RealseUi(ui);
                     break;
                 }
             }
@@ -185,6 +189,7 @@ namespace UIFramework
                 UI ui = uiList[i];
                 uiList.RemoveAt(i);
                 ui.Destroy();
+                UIManager.Instance.RealseUi(ui);
             }
             uiList.Clear();
         }

@@ -131,8 +131,9 @@ namespace UIFramework
             }
 
             ChildUI childUI = null;
-            childDic.TryGetValue(uiName,out childUI);
+            childDic.TryGetValue(uiName, out childUI);
             childUI?.Destroy();
+            UIManager.Instance.RealseUi(childUI);
             childDic?.Remove(uiName);
         }
 
@@ -152,6 +153,7 @@ namespace UIFramework
             ChildUI childUI = null;
             childDic.TryGetValue(uiName, out childUI);
             childUI?.Destroy();
+            UIManager.Instance.RealseUi(childUI);
             childDic?.Remove(uiName);
         }
 
@@ -164,7 +166,10 @@ namespace UIFramework
                 {
                     ChildUI childUi = kv.Value;
                     if (childUi != null)
+                    {
                         childUi.Destroy();
+                        UIManager.Instance.RealseUi(childUi);
+                    }
                 }
                 childDic.Clear();
             }

@@ -288,9 +288,7 @@ namespace UIFramework
                 return null;
             }
 
-            GameUI ui = new GameUI();
-            ui.UiData = uiData;
-            ui.Tcs = new TaskCompletionSource<bool>();
+            GameUI ui = new GameUI(uiData);
 
             //创建子UI
             if (ui.UiData.HasChildUI)
@@ -301,9 +299,7 @@ namespace UIFramework
                     if (childUi != null)
                         continue;
 
-                    childUi = new ChildUI();
-                    childUi.UiData = kv.Value;
-                    childUi.Tcs = new TaskCompletionSource<bool>();
+                    childUi = new ChildUI(kv.Value);
                     ui.AddChildUI(kv.Key, childUi);
                 }
             }
@@ -723,6 +719,7 @@ namespace UIFramework
         {
             if (ui.UiData.UIResType != UIResType.SetGameObject)
             {
+                ui.UIState = UIStateType.Loading;
                 GameObject go = GameObject.Instantiate(Resources.Load<GameObject>(GetAssetUrl(ui.UiData.UiName))) as GameObject;
 
                 ui.SetGameObject(go);
@@ -737,6 +734,7 @@ namespace UIFramework
 
                 if (childUi != null && childUi.ParentUI != null)
                 {
+                    ui.UIState = UIStateType.Loading;
                     GameObject childGameObject = childUi.ParentUI.GameObject.FindGameObject(childUi.UiData.UiName);
                     if (childGameObject == null)
                     {
@@ -866,6 +864,42 @@ namespace UIFramework
 
             allList.Remove(ui);
             GameEventManager.Instance.Notify(EVENT_UI_DESTROY, ui);
+        }
+
+        #endregion
+
+        #region Release
+
+        /// <summary>
+        /// 释放ui资源
+        /// </summary>
+        /// <param name="ui"></param>
+        public void RealseUi(UI ui)
+        {
+            if (ui == null)
+            {
+                return;
+            }
+
+            //没有加载、或者已释放直接返回
+            if (ui.UIState == UIStateType.None || ui.UIState == UIStateType.Release)
+            {
+                return;
+            }
+
+            ui.UIState = UIStateType.Release;
+
+            if (ui.UiData.UIResType == UIResType.Bundle)
+            {
+                if (ui.GameObject)
+                {
+                    UnityEngine.Object.Destroy(ui.GameObject);
+                }
+
+                //string abName = XAssetManager.GetUi(ui.UiData.UiName);
+                //abName = abName.ToLower();
+                //XAssetManager.UnloadAsset(abName, DELAY_UNLOAD_UI_AB_TIME);
+            }
         }
 
         #endregion

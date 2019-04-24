@@ -9,6 +9,12 @@ namespace UIFramework
 {
     public class UIMonoProxy : UIProxy
     {
+        public override void SetUi(UI ui)
+        {
+            this.UI = ui;
+            this.Events = OnGetEvents();
+        }
+
         public override void OnAwake()
         {
         }
@@ -34,6 +40,11 @@ namespace UIFramework
             if (UI == null || UI == null || !UI.GameObject)
                 return null;
             return UI.GameObject.FindComponent<T>(name);
+        }
+
+        public override string[] OnGetEvents()
+        {
+            return null;
         }
 
         public override void OnNotify(string evt, params object[] args)
