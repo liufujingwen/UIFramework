@@ -166,7 +166,7 @@ namespace UIFramework
             {
                 List<UI> uiList = showStack.GetList();
                 UI preUi = showStack.Peek();
-                if (preUi != null && preUi.UIState == UIStateType.Disable)
+                if (preUi != null && preUi.UiData.UiType == UIType.NormalPopup && preUi.UIState == UIStateType.Disable)
                 {
                     TempList.Clear();
                     TempList.Add(preUi);
@@ -186,19 +186,16 @@ namespace UIFramework
                         TempList.Add(tempUi);
                     }
 
-                    if (TempList.Count == 1)
+                    //直接显示连续为ShowHistory的ui
+                    for (int i = TempList.Count - 1; i >= 0; i--)
                     {
-                        await preUi.EnableAsync();
+                        UI tempUi = TempList[i];
+                        tempUi?.Enable();
                     }
-                    else
-                    {
-                        //直接显示连续为ShowHistory的ui
-                        for (int i = TempList.Count - 1; i >= 0; i--)
-                        {
-                            UI tempUi = TempList[i];
-                            tempUi?.Enable();
-                        }
-                    }
+                }
+                else
+                {
+                    await preUi?.EnableAsync();
                 }
             }
 
