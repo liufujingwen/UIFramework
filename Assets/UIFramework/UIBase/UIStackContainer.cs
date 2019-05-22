@@ -17,6 +17,8 @@ namespace UIFramework
         bool poping = false;
         //正在关闭全部（避免在关闭过程中有些UI写了打开某个ui在disable、destroy里面）
         bool closingAll = false;
+        //临时记录连续状态为ShowHistory的ui
+        private static List<UI> TempList = new List<UI>();
 
         public UIStackContainer(UIType uiType, int minOrder)
         {
@@ -84,11 +86,30 @@ namespace UIFramework
             //等待UI加载
             await UIManager.Instance.LoadUIAsync(ui);
 
-            //播放UI出场动画
-            if (showStack.Count != 0)
+            //播放UI推场动画
+            if (ui.UiData.UiType == UIType.NormalPopup)
             {
                 UI curUi = showStack.Peek();
-                await curUi?.DisableAsync();
+                if (curUi != null)
+                {
+                    curUi.ShowHistory = true;
+                }
+            }
+            else
+            {
+                //播放UI退场动画
+                if (showStack.Count != 0)
+                {
+                    List<UI> uiList = showStack.GetList();
+                    for (int i = uiList.Count - 1; i >= 0; i--)
+                    {
+                        UI tempUi = uiList[i];
+                        if (tempUi != null && tempUi.UIState == UIStateType.Enable)
+                        {
+                            await tempUi?.DisableAsync();
+                        }
+                    }
+                }
             }
 
             showStack.Push(ui);
@@ -143,8 +164,42 @@ namespace UIFramework
             //显示前一个界面
             if (showStack.Count != 0)
             {
+                List<UI> uiList = showStack.GetList();
                 UI preUi = showStack.Peek();
-                await preUi.EnableAsync();
+                if (preUi != null && preUi.UIState == UIStateType.Disable)
+                {
+                    TempList.Clear();
+                    TempList.Add(preUi);
+                    for (int i = uiList.Count - 2; i >= 0; i--)
+                    {
+                        UI tempUi = uiList[i];
+                        if (tempUi == null)
+                        {
+                            break;
+                        }
+
+                        if (!tempUi.ShowHistory)
+                        {
+                            break;
+                        }
+
+                        TempList.Add(tempUi);
+                    }
+
+                    if (TempList.Count == 1)
+                    {
+                        await preUi.EnableAsync();
+                    }
+                    else
+                    {
+                        //直接显示连续为ShowHistory的ui
+                        for (int i = TempList.Count - 1; i >= 0; i--)
+                        {
+                            UI tempUi = TempList[i];
+                            tempUi?.Enable();
+                        }
+                    }
+                }
             }
 
             //释放Mask

@@ -54,7 +54,10 @@ namespace UIFramework
         /// <summary>
         /// 堆栈管理的UI类型
         /// </summary>
-        public const UIType StackType = UIType.Normal | UIType.Popup;
+        public const UIType StackType = UIType.Normal | UIType.NormalPopup | UIType.Popup;
+
+        //共享Normal栈的类型
+        public const UIType ShareNormalType = UIType.Normal | UIType.NormalPopup;
 
         /// <summary>
         /// 正在关闭全部（避免在关闭过程中有些UI写了打开某个ui在disable、destroy里面）
@@ -141,9 +144,13 @@ namespace UIFramework
             uiCamera = uiRoot.gameObject.FindComponent<Camera>("Camera");
             poolCanvas = uiRoot.FindTransform("CanvasPool");
 
-            foreach (UIType uiType in Enum.GetValues(typeof(UIType)))
+            Array uiTypeArray = Enum.GetValues(typeof(UIType));
+            foreach (UIType uiType in uiTypeArray)
             {
                 if (uiType == UIType.Child)
+                    continue;
+
+                if (uiType != UIType.Normal && (uiType & ShareNormalType) != 0)
                     continue;
 
                 Canvas tempCanvas = uiRoot.gameObject.FindComponent<Canvas>($"Canvas{uiType}");
@@ -158,9 +165,21 @@ namespace UIFramework
                 }
             }
 
+            //设置共享Normal层级的类型
+            foreach (UIType uiType in uiTypeArray)
+            {
+                if ((uiType & ShareNormalType) == 0)
+                    continue;
+                showDic[uiType] = showDic[UIType.Normal];
+            }
+
             //改变ui的父节点
             foreach (var kv in showDic)
+            {
+                if (kv.Key != UIType.Normal && (kv.Key & ShareNormalType) != 0)
+                    continue;
                 kv.Value.SetUiParent(canvasDic[kv.Key].transform, false);
+            }
 
             //改变mask的父节点
             if (maskGo != null)
@@ -369,12 +388,20 @@ namespace UIFramework
                 return;
 
             Canvas tempCanvas = null;
-            if (canvasDic.TryGetValue(ui.UiData.UiType, out tempCanvas))
+
+            UIType uiType = ui.UiData.UiType;
+
+            if (uiType != UIType.Child && (ui.UiData.UiType & ShareNormalType) != 0)
+            {
+                uiType = UIType.Normal;
+            }
+
+            if (canvasDic.TryGetValue(uiType, out tempCanvas))
             {
                 if (!ui.Transform.IsChildOf(tempCanvas.transform))
                     ui.Transform.SetParent(tempCanvas.transform, worldPositionStays);
             }
-            else if (ui.UiData.UiType == UIType.Child)
+            else if (uiType == UIType.Child)
             {
                 ChildUI childUi = ui as ChildUI;
                 if (childUi.ParentUI != null && childUi.ParentUI.ChildParentNode)

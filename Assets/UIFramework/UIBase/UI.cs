@@ -12,12 +12,13 @@ namespace UIFramework
     {
         Hud,
         Normal = 1,
-        Popup = 2,
-        Dialog = 4,
-        Guide = 8,
-        Tips = 16,
-        TopMask = 32,
-        Top = 64,
+        NormalPopup = 2,
+        Popup = 4,
+        Dialog = 8,
+        Guide = 16,
+        Tips = 32,
+        TopMask = 64,
+        Top = 128,
 
         Child,//子UI
     }
@@ -74,6 +75,7 @@ namespace UIFramework
 
         protected Dictionary<Canvas, int> CanvasDic = null;
         protected Animator Animator = null;
+        public bool ShowHistory = false;
 
         //当前是否播放动画
         protected TaskCompletionSource<bool> IsPlayingAniamtionTask = null;
