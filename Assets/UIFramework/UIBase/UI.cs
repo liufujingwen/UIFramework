@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Playables;
 
 namespace UIFramework
 {
@@ -74,8 +75,9 @@ namespace UIFramework
         public UIProxy UIProxy = null;
 
         protected Dictionary<Canvas, int> CanvasDic = null;
-        protected Animator Animator = null;
         public bool ShowHistory = false;
+
+        Dictionary<string, PlayableDirector> PlayableDirectors = new Dictionary<string, PlayableDirector>();
 
         //当前是否播放动画
         protected TaskCompletionSource<bool> IsPlayingAniamtionTask = null;
@@ -109,6 +111,36 @@ namespace UIFramework
 
             UIManager.Instance.SetUIParent(this, false);
 
+            //记录所有PlayableDirector
+            if (this.UiData.HasAnimation)
+            {
+                Transform animationTrans = Transform.Find("Animation");
+                if (animationTrans != null)
+                {
+                    PlayableDirector[] directors = animationTrans.GetComponentsInChildren<PlayableDirector>(true);
+                    PlayableDirectors.Clear();
+                    for (int i = 0; i < directors.Length; i++)
+                    {
+                        PlayableDirector director = directors[i];
+
+                        if (!director)
+                            continue;
+
+                        string animName = director.gameObject.name;
+
+                        if (PlayableDirectors.ContainsKey(animName))
+                        {
+                            Debug.LogError($"{UiData.UiName}存在同名动画:{animName}");
+                            return;
+                        }
+
+                        director.playOnAwake = false;
+                        PlayableDirectors.Add(animName, director);
+                    }
+                }
+
+            }
+
             //记录所有Canvas初始化的sortingOrder
             Canvas[] tempCanvases = this.GameObject.GetComponentsInChildren<Canvas>(true);
             CanvasDic = new Dictionary<Canvas, int>(tempCanvases.Length);
@@ -117,9 +149,6 @@ namespace UIFramework
                 Canvas tempCanvas = tempCanvases[i];
                 CanvasDic[tempCanvas] = tempCanvas.sortingOrder;
             }
-
-            if (this.UiData.HasAnimation)
-                this.Animator = this.GameObject.GetComponent<Animator>();
 
             this.GameObject.SetActive(false);
 
@@ -182,10 +211,7 @@ namespace UIFramework
                 //播放进场动画
                 if (this.UiData.HasAnimation)
                 {
-                    IsPlayingAniamtionTask = new TaskCompletionSource<bool>();
-                    this.Animator.enabled = true;
-                    this.Animator.Play("Enable");
-                    this.Animator.Update(0);
+                    PlayAnimation(AnimationStateType.Enable);
                 }
 
                 await this.WaitAnimationFinished();
@@ -228,10 +254,7 @@ namespace UIFramework
                 //播放Resume动画
                 if (this.UiData.HasAnimation)
                 {
-                    IsPlayingAniamtionTask = new TaskCompletionSource<bool>();
-                    this.Animator.enabled = true;
-                    this.Animator.Play("Enable");
-                    this.Animator.Update(0);
+                    PlayAnimation(AnimationStateType.Enable);
                 }
 
                 await this.WaitAnimationFinished();
@@ -289,10 +312,7 @@ namespace UIFramework
                 //播放暂停动画
                 if (this.UiData.HasAnimation)
                 {
-                    IsPlayingAniamtionTask = new TaskCompletionSource<bool>();
-                    this.Animator.enabled = true;
-                    this.Animator.Play("Disable");
-                    this.Animator.Update(0);
+                    PlayAnimation(AnimationStateType.Disable);
                 }
                 await this.WaitAnimationFinished();
 
@@ -353,7 +373,7 @@ namespace UIFramework
                 UIManager.Instance.NotifyBeforeDestroy(this);
 
                 this.OnDestroy();
-             
+
                 if (this.GameObject)
                     GameObject.Destroy(this.GameObject);
                 this.GameObject = null;
@@ -375,6 +395,64 @@ namespace UIFramework
 
         #endregion
 
+        public void PlayAnimation(string animName, Action finishedCallback = null)
+        {
+            PlayableDirector playableDirector = null;
+            if (!PlayableDirectors.TryGetValue(animName, out playableDirector))
+            {
+                Debug.LogError($"{UiData.UiName}不存在动画:{animName}");
+                return;
+            }
+
+            if (!playableDirector)
+                return;
+
+            UIManager.Instance.SetMask(true);
+            playableDirector.gameObject.PlayTimelineAnimation(animName, () =>
+            {
+                UIManager.Instance.SetMask(false);
+                if (this.IsPlayingAniamtionTask != null && !this.IsPlayingAniamtionTask.Task.IsCompleted)
+                    this.IsPlayingAniamtionTask.SetResult(true);
+                finishedCallback?.Invoke();
+            });
+        }
+
+        private void PlayAnimation(AnimationStateType state)
+        {
+            string animName = null;
+
+            switch (state)
+            {
+                case AnimationStateType.Enable:
+                    animName = "AnimEnable";
+                    break;
+                case AnimationStateType.Disable:
+                    animName = "AnimDisable";
+                    break;
+            }
+
+            IsPlayingAniamtionTask = new TaskCompletionSource<bool>();
+
+            PlayableDirector director = null;
+            if (!PlayableDirectors.TryGetValue(animName, out director))
+            {
+                IsPlayingAniamtionTask.SetResult(true);
+                return;
+            }
+
+            if (!director.playableAsset)
+            {
+                IsPlayingAniamtionTask.SetResult(true);
+                return;
+            }
+
+            PlayAnimation(animName, () =>
+            {
+                if (this.IsPlayingAniamtionTask != null && !this.IsPlayingAniamtionTask.Task.IsCompleted)
+                    this.IsPlayingAniamtionTask.SetResult(true);
+            });
+        }
+
         /// <summary>
         /// 等待动画播放完成Task
         /// </summary>
@@ -392,12 +470,6 @@ namespace UIFramework
         public Task GetPlayingAniamtionTask()
         {
             return IsPlayingAniamtionTask.Task;
-        }
-
-        public void OnNotifyAnimationState()
-        {
-            if (this.IsPlayingAniamtionTask != null && !this.IsPlayingAniamtionTask.Task.IsCompleted)
-                this.IsPlayingAniamtionTask.SetResult(true);
         }
     }
 }

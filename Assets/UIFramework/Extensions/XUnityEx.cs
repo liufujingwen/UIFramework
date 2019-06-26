@@ -165,4 +165,68 @@ public static class XUnityEx
         if (tempTransform == null) return null;
         return tempTransform.gameObject.GetComponent<T>();
     }
+
+    #region PlayAnimation
+
+    public static void PlayLegacyAnimation(this GameObject gameObject, string animName, Action finishedCallback)
+    {
+        if (!gameObject)
+        {
+            return;
+        }
+
+        PlayLegacyAnimation(gameObject.transform, animName, finishedCallback);
+    }
+
+    public static void PlayLegacyAnimation(this Transform transform, string animName, Action finishedCallback)
+    {
+        if (!transform)
+        {
+            return;
+        }
+
+        UIPlayLegacyAnimation.Play(transform, animName, finishedCallback);
+    }
+
+    public static void PlayAnimatorAnimation(this GameObject gameObject, string animName, Action finishedCallback)
+    {
+        if (!gameObject)
+        {
+            return;
+        }
+
+        PlayAnimatorAnimation(gameObject.transform, animName, finishedCallback);
+    }
+
+    public static void PlayAnimatorAnimation(this Transform transform, string animName, Action finishedCallback)
+    {
+        if (!transform)
+        {
+            return;
+        }
+
+        UIPlayAnimatorAnimation.Play(transform, animName, finishedCallback);
+    }
+
+    public static void PlayTimelineAnimation(this GameObject gameObject, string animName, Action finishedCallback)
+    {
+        if (!gameObject)
+        {
+            return;
+        }
+
+        PlayTimelineAnimation(gameObject.transform, animName, finishedCallback);
+    }
+
+    public static void PlayTimelineAnimation(this Transform transform, string animName, Action finishedCallback)
+    {
+        if (!transform)
+        {
+            return;
+        }
+
+        UIPlayTimelineAnimation.Play(transform, animName, finishedCallback);
+    }
+
+    #endregion
 }

@@ -10,15 +10,12 @@ function HighScoreUI:OnAwake()
 
     Debug.Log("Lua HighScoreUI OnAwake" .. self.Name)
     local BackButton = self.GameObject:FindGameObject("BackButton")
-    self.super.RegisterListener(self, "BackButton", self.OnClickExitBtn)
     self.super.RegisterListener(self, BackButton, self.OnClickExitBtn)
     
 end
 
 function HighScoreUI:OnClickExitBtn(eventData)
-
     UIManager.Instance:Pop()
-
 end
 
 function HighScoreUI:OnStart(args)

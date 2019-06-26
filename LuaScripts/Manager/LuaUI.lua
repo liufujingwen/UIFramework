@@ -57,3 +57,8 @@ end
 function LuaUI:CloseChildUI(childUIName)
     self.UIProxy:CloseChildUI(childUIName)
 end
+
+--快捷关闭界面
+function LuaUI:Close()
+    self.UIProxy:Close()
+end

@@ -459,20 +459,6 @@ namespace UIFramework
         }
 
         /// <summary>
-        /// 界面播放完动画通知
-        /// </summary>
-        /// <param name="animator"></param>
-        public void NotifyAnimationFinish(Animator animator)
-        {
-            for (int i = 0; i < showList.Count; i++)
-            {
-                UI ui = showList[i];
-                if (ui != null && ui.GameObject && ui.GameObject == animator.gameObject)
-                    ui.OnNotifyAnimationState();
-            }
-        }
-
-        /// <summary>
         /// 打开UI
         /// </summary>
         /// <param name="uiName">UI名字</param>
