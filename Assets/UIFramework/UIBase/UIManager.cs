@@ -10,7 +10,7 @@ namespace UIFramework
     /// <summary>
     /// UI管理器
     /// </summary>
-    public class UIManager : Singleton<UIManager>, IUINotify
+    public class UIManager : Singleton<UIManager>
     {
         //UI生命周期事件
         public const string EVENT_UI_AWAKE = "EVENT_UI_AWAKE";//UI执行Awake通知
@@ -76,7 +76,6 @@ namespace UIFramework
 
         public void Init()
         {
-            AddUiNotify(this);
             InitTypes();
             ProcessingUIDataMapping();
             InitUIRoot(UIResType.Resorces);
@@ -802,8 +801,26 @@ namespace UIFramework
             nofifyList.Remove(notify);
         }
 
-        public void NotifyAwake(UI ui)
+        public void NotifyBeforeLoad(UI ui)
         {
+            if (ui == null)
+                return;
+        }
+
+        public void NotifyAfterLoad(UI ui)
+        {
+            if (ui == null)
+                return;
+        }
+
+        public void NotifyBeforeAwake(UI ui)
+        {
+            if (ui == null)
+                return;
+
+            allList.Add(ui);
+            GameEventManager.Instance.Notify(EVENT_UI_AWAKE, ui);
+
             for (int i = 0; i < nofifyList.Count; i++)
             {
                 IUINotify notify = nofifyList[i];
@@ -811,8 +828,30 @@ namespace UIFramework
             }
         }
 
-        public void NotifyStart(UI ui)
+        public void NotifyAfterAwake(UI ui)
         {
+            if (ui == null)
+                return;
+        }
+
+        public void NotifyBeforeStart(UI ui)
+        {
+            if (ui == null)
+                return;
+        }
+
+        public void NotifyAfterStart(UI ui)
+        {
+            if (ui == null)
+                return;
+
+            if (!showList.Contains(ui))
+            {
+                showList.Add(ui);
+            }
+
+            GameEventManager.Instance.Notify(EVENT_UI_START, ui);
+
             for (int i = 0; i < nofifyList.Count; i++)
             {
                 IUINotify notify = nofifyList[i];
@@ -820,51 +859,14 @@ namespace UIFramework
             }
         }
 
-        public void NotifyEnable(UI ui)
-        {
-            for (int i = 0; i < nofifyList.Count; i++)
-            {
-                IUINotify notify = nofifyList[i];
-                notify?.OnEnable(ui);
-            }
-        }
-
-        public void NotifyDisable(UI ui)
-        {
-            for (int i = 0; i < nofifyList.Count; i++)
-            {
-                IUINotify notify = nofifyList[i];
-                notify?.OnDisable(ui);
-            }
-        }
-
-        public void NotifyDestroy(UI ui)
-        {
-            for (int i = 0; i < nofifyList.Count; i++)
-            {
-                IUINotify notify = nofifyList[i];
-                notify?.OnDestroy(ui);
-            }
-        }
-
-        public void OnAwake(UI ui)
+        public void NotifyBeforeEnable(UI ui)
         {
             if (ui == null)
                 return;
 
-            allList.Add(ui);
-            GameEventManager.Instance.Notify(EVENT_UI_AWAKE, ui);
         }
 
-        public void OnStart(UI ui)
-        {
-            if (ui == null)
-                return;
-
-            GameEventManager.Instance.Notify(EVENT_UI_START, ui);
-        }
-
-        public void OnEnable(UI ui)
+        public void NotifyAfterEnable(UI ui)
         {
             if (ui == null)
                 return;
@@ -873,24 +875,52 @@ namespace UIFramework
 
             if (!showList.Contains(ui))
                 showList.Add(ui);
+
+            for (int i = 0; i < nofifyList.Count; i++)
+            {
+                IUINotify notify = nofifyList[i];
+                notify?.OnEnable(ui);
+            }
         }
 
-        public void OnDisable(UI ui)
+        public void NotifyBeforeDisable(UI ui)
         {
             if (ui == null)
                 return;
 
             GameEventManager.Instance.Notify(EVENT_UI_DISABLE, ui);
             showList.Remove(ui);
+
+            for (int i = 0; i < nofifyList.Count; i++)
+            {
+                IUINotify notify = nofifyList[i];
+                notify?.OnDisable(ui);
+            }
         }
 
-        public void OnDestroy(UI ui)
+        public void NotifyAfterDisable(UI ui)
+        {
+            if (ui == null)
+                return;
+        }
+
+        public void NotifyBeforeDestroy(UI ui)
         {
             if (ui == null)
                 return;
 
             allList.Remove(ui);
             GameEventManager.Instance.Notify(EVENT_UI_DESTROY, ui);
+
+            for (int i = 0; i < nofifyList.Count; i++)
+            {
+                IUINotify notify = nofifyList[i];
+                notify?.OnDestroy(ui);
+            }
+        }
+
+        public void NotifyAfterDestroy(UI ui)
+        {
         }
 
         #endregion
@@ -922,10 +952,6 @@ namespace UIFramework
                 {
                     UnityEngine.Object.Destroy(ui.GameObject);
                 }
-
-                //string abName = XAssetManager.GetUi(ui.UiData.UiName);
-                //abName = abName.ToLower();
-                //XAssetManager.UnloadAsset(abName, DELAY_UNLOAD_UI_AB_TIME);
             }
         }
 

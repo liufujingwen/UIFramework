@@ -149,9 +149,9 @@ namespace UIFramework
             {
                 this.UIState = UIStateType.Awake;
                 AwakeState = true;
-
+                UIManager.Instance.NotifyBeforeAwake(this);
                 this.OnAwake();
-                UIManager.Instance.NotifyAwake(this);
+                UIManager.Instance.NotifyAfterAwake(this);
                 this.GameObject.SetActive(false);
             }
         }
@@ -198,8 +198,9 @@ namespace UIFramework
             {
                 this.UIState = UIStateType.Start;
                 this.GameObject?.SetActive(true);
+                UIManager.Instance.NotifyBeforeStart(this);
                 this.OnStart(args);
-                UIManager.Instance.NotifyStart(this);
+                UIManager.Instance.NotifyAfterStart(this);
             }
         }
 
@@ -247,8 +248,10 @@ namespace UIFramework
             {
                 this.UIState = UIStateType.Enable;
                 this.GameObject?.SetActive(true);
+
+                UIManager.Instance.NotifyBeforeEnable(this);
+
                 this.OnEnable();
-                
                 //注册事件监听
                 if (UIProxy.Events != null)
                 {
@@ -259,7 +262,7 @@ namespace UIFramework
                     }
                 }
 
-                UIManager.Instance.NotifyEnable(this);
+                UIManager.Instance.NotifyAfterEnable(this);
             }
         }
 
@@ -320,9 +323,12 @@ namespace UIFramework
                     }
                 }
 
-                UIManager.Instance.NotifyDisable(this);
+                UIManager.Instance.NotifyBeforeDisable(this);
+
                 OnDisable();
                 this.GameObject?.SetActive(false);
+
+                UIManager.Instance.NotifyAfterDisable(this);
             }
         }
 
@@ -344,9 +350,10 @@ namespace UIFramework
             Disable();
             if (this.UIState != UIStateType.Destroy)
             {
-                UIManager.Instance.NotifyDestroy(this);
-                this.OnDestroy();
+                UIManager.Instance.NotifyBeforeDestroy(this);
 
+                this.OnDestroy();
+             
                 if (this.GameObject)
                     GameObject.Destroy(this.GameObject);
                 this.GameObject = null;
@@ -356,6 +363,8 @@ namespace UIFramework
                 this.AwakeState = false;
                 this.IsPlayingAniamtionTask = null;
                 this.Tcs = null;
+
+                UIManager.Instance.NotifyAfterDestroy(this);
             }
         }
 
