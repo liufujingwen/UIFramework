@@ -113,6 +113,11 @@ namespace UIFramework
             gameUI.CloseChildUI(childUIName);
         }
 
+        public void PlayAnimation(string animName, Action finishedCallback = null)
+        {
+            UI?.PlayAnimation(animName, finishedCallback);
+        }
+
         public void Close()
         {
             if (this.UI == null)
