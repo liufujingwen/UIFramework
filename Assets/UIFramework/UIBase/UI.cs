@@ -75,12 +75,11 @@ namespace UIFramework
         public UIProxy UIProxy = null;
 
         protected Dictionary<Canvas, int> CanvasDic = null;
-        public bool ShowHistory = false;
 
         Dictionary<string, PlayableDirector> PlayableDirectors = new Dictionary<string, PlayableDirector>();
 
         //当前是否播放动画
-        protected TaskCompletionSource<bool> IsPlayingAniamtionTask = null;
+        protected TaskCompletionSource<bool> IsPlayingAnimationTask = null;
 
         protected UI(UIData uiData)
         {
@@ -138,7 +137,6 @@ namespace UIFramework
                         PlayableDirectors.Add(animName, director);
                     }
                 }
-
             }
 
             //记录所有Canvas初始化的sortingOrder
@@ -381,7 +379,7 @@ namespace UIFramework
                 this.UIState = UIStateType.Destroy;
                 this.AnimationState = AnimationStateType.Destroy;
                 this.AwakeState = false;
-                this.IsPlayingAniamtionTask = null;
+                this.IsPlayingAnimationTask = null;
                 this.Tcs = null;
 
                 UIManager.Instance.NotifyAfterDestroy(this);
@@ -411,8 +409,8 @@ namespace UIFramework
             playableDirector.gameObject.PlayTimelineAnimation(animName, () =>
             {
                 UIManager.Instance.SetMask(false);
-                if (this.IsPlayingAniamtionTask != null && !this.IsPlayingAniamtionTask.Task.IsCompleted)
-                    this.IsPlayingAniamtionTask.SetResult(true);
+                if (this.IsPlayingAnimationTask != null && !this.IsPlayingAnimationTask.Task.IsCompleted)
+                    this.IsPlayingAnimationTask.SetResult(true);
                 finishedCallback?.Invoke();
             });
         }
@@ -431,25 +429,25 @@ namespace UIFramework
                     break;
             }
 
-            IsPlayingAniamtionTask = new TaskCompletionSource<bool>();
+            IsPlayingAnimationTask = new TaskCompletionSource<bool>();
 
             PlayableDirector director = null;
             if (!PlayableDirectors.TryGetValue(animName, out director))
             {
-                IsPlayingAniamtionTask.SetResult(true);
+                IsPlayingAnimationTask.SetResult(true);
                 return;
             }
 
             if (!director.playableAsset)
             {
-                IsPlayingAniamtionTask.SetResult(true);
+                IsPlayingAnimationTask.SetResult(true);
                 return;
             }
 
             PlayAnimation(animName, () =>
             {
-                if (this.IsPlayingAniamtionTask != null && !this.IsPlayingAniamtionTask.Task.IsCompleted)
-                    this.IsPlayingAniamtionTask.SetResult(true);
+                if (this.IsPlayingAnimationTask != null && !this.IsPlayingAnimationTask.Task.IsCompleted)
+                    this.IsPlayingAnimationTask.SetResult(true);
             });
         }
 
@@ -459,7 +457,7 @@ namespace UIFramework
         /// <returns></returns>
         public virtual async Task WaitAnimationFinished()
         {
-            if (IsPlayingAniamtionTask != null)
+            if (IsPlayingAnimationTask != null)
                 await GetPlayingAniamtionTask();
         }
 
@@ -469,7 +467,7 @@ namespace UIFramework
         /// <returns></returns>
         public Task GetPlayingAniamtionTask()
         {
-            return IsPlayingAniamtionTask.Task;
+            return IsPlayingAnimationTask.Task;
         }
     }
 }

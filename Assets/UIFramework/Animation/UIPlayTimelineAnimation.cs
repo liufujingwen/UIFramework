@@ -13,7 +13,6 @@ public class UIPlayTimelineAnimation : MonoBehaviour
     private float ElapsedTime;//动画经过的时间
     private float Length;//动画时长
     private static readonly Dictionary<int, UIPlayTimelineAnimation> TimelineAnimAnimDic = new Dictionary<int, UIPlayTimelineAnimation>();
-    private bool CheckPlayState = false;
     private int WaitFrame = 0;
 
     private void OnDisable()
@@ -38,11 +37,6 @@ public class UIPlayTimelineAnimation : MonoBehaviour
             Director.time = ElapsedTime;
             WaitFrame--;
             return;
-        }
-
-        if (CheckPlayState)
-        {
-            CheckPlayState = false;
         }
 
         ElapsedTime += Time.deltaTime;

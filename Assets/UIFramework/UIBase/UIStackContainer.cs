@@ -90,10 +90,6 @@ namespace UIFramework
             if (ui.UiData.UiType == UIType.NormalPopup)
             {
                 UI curUi = showStack.Peek();
-                if (curUi != null)
-                {
-                    curUi.ShowHistory = true;
-                }
             }
             else
             {
@@ -169,7 +165,7 @@ namespace UIFramework
                 if (preUi != null && preUi.UiData.UiType == UIType.NormalPopup && preUi.UIState == UIStateType.Disable)
                 {
                     TempList.Clear();
-                    TempList.Add(preUi);
+                
                     for (int i = uiList.Count - 2; i >= 0; i--)
                     {
                         UI tempUi = uiList[i];
@@ -178,12 +174,12 @@ namespace UIFramework
                             break;
                         }
 
-                        if (!tempUi.ShowHistory)
+                        TempList.Add(preUi);
+
+                        if (tempUi.UiData.UiType != UIType.NormalPopup)
                         {
                             break;
                         }
-
-                        TempList.Add(tempUi);
                     }
 
                     //直接显示连续为ShowHistory的ui
