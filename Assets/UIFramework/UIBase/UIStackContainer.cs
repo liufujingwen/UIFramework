@@ -174,7 +174,7 @@ namespace UIFramework
                             break;
                         }
 
-                        TempList.Add(preUi);
+                        TempList.Add(tempUi);
 
                         if (tempUi.UiData.UiType != UIType.NormalPopup)
                         {
