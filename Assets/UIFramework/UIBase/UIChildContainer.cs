@@ -222,7 +222,7 @@ namespace UIFramework
             }
         }
 
-        public void Enable()
+        public void PlayEnableAnimation()
         {
             //父UI执行Enable之前，需要把显示列表的UI执行Enable
             for (int i = 0; i < showList.Count; i++)
@@ -233,7 +233,7 @@ namespace UIFramework
             }
         }
 
-        public void Disable()
+        public void PlayDisableAnimation()
         {
             //父UI执行Disable之前，有动画的子UI需要播放退场动画
             for (int i = 0; i < showList.Count; i++)
@@ -241,6 +241,16 @@ namespace UIFramework
                 ChildUI childUI = showList[i];
                 if (childUI != null)
                     childUI.DisableAsync().ConfigureAwait(true);
+            }
+        }
+
+        public void PlayDestroyAnimation()
+        {
+            for (int i = 0; i < showList.Count; i++)
+            {
+                ChildUI childUI = showList[i];
+                if (childUI != null)
+                    childUI.DestroyAsync().ConfigureAwait(true);
             }
         }
 

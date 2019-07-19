@@ -71,15 +71,20 @@ namespace UIFramework
             childUIContainer.TryAwake();
         }
 
-        public override void EnableChild()
+        public override void PlayChildEnableAnimation()
         {
-            childUIContainer.Enable();
+            childUIContainer.PlayEnableAnimation();
         }
 
-        public override void DisableChild()
+        public override void PlayChildDisableAnimation()
         {
             //有动画的子UI退场
-            childUIContainer.Disable();
+            childUIContainer.PlayDisableAnimation();
+        }
+
+        public override void PlayChildDestroyAnimation()
+        {
+            childUIContainer.PlayDestroyAnimation();
         }
 
         public override void Destroy()

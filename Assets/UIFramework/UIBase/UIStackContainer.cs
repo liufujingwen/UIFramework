@@ -151,11 +151,13 @@ namespace UIFramework
             {
                 //先peek,如果pop了就没有动画通知
                 UI curUi = showStack.Peek();
-                await curUi.DisableAsync();
+                await curUi.DestroyAsync();
                 showStack.Pop();
                 curUi.Destroy();
                 UIManager.Instance.RealseUi(curUi);
             }
+
+            poping = false;
 
             //显示前一个界面
             if (showStack.Count != 0)
@@ -198,8 +200,6 @@ namespace UIFramework
             //释放Mask
             if ((this.UIType & UIManager.IgnoreMaskType) == 0)
                 UIManager.Instance.SetMask(false);
-
-            poping = false;
 
             callback?.Invoke();
         }
@@ -251,7 +251,7 @@ namespace UIFramework
             {
                 //先peek,如果pop了就没有动画通知
                 UI currentUi = showStack.Peek();
-                await currentUi.DisableAsync();
+                await currentUi.DestroyAsync();
                 showStack.Pop();
                 currentUi.Destroy();
                 UIManager.Instance.RealseUi(currentUi);
@@ -313,7 +313,7 @@ namespace UIFramework
             {
                 //先peek,如果pop了就没有动画通知
                 UI curUi = showStack.Peek();
-                await curUi.DisableAsync();
+                await curUi.DestroyAsync();
                 showStack.Pop();
                 curUi.Destroy();
                 UIManager.Instance.RealseUi(curUi);

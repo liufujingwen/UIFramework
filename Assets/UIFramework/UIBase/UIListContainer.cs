@@ -112,7 +112,7 @@ namespace UIFramework
                 UIManager.Instance.SetMask(true);
 
             //新播放退场动画
-            await ui.DisableAsync();
+            await ui.DestroyAsync();
             uiList.Remove(ui);
             ui.Destroy();
             UIManager.Instance.RealseUi(ui);
