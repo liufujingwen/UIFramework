@@ -42,7 +42,7 @@ public class UIPlayTimelineAnimation : MonoBehaviour
         ElapsedTime += Time.deltaTime;
         Director.time = ElapsedTime;
 
-        if (ElapsedTime >= Length && Director.time >= Length)
+        if (ElapsedTime >= Length)
         {
             OnFinished();
         }
@@ -52,7 +52,7 @@ public class UIPlayTimelineAnimation : MonoBehaviour
     private void OnFinished()
     {
         IsPlaying = false;
-        Director?.Stop();
+        Director.time = Length;
         ElapsedTime = 0;
         Action tempHandle = FinishedCallback;
         FinishedCallback = null;
