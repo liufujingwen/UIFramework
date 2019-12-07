@@ -59,7 +59,7 @@ public class MainMenuUI : UIMonoProxy
         Debug.Log("MainMenuUI OnDestroy");
     }
 
-    public override void OnNotify(string evt, params object[] args)
+    public override void OnNotify(string evt, IEventArgs args)
     {
     }
 }

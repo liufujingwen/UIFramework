@@ -36,7 +36,7 @@ namespace UIFramework
 
         public abstract void OnDestroy();
 
-        public abstract void OnNotify(string evt, params object[] args);
+        public abstract void OnNotify(string evt, IEventArgs args);
 
         public GameObject FindGameObject(string name)
         {

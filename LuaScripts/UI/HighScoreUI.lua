@@ -34,6 +34,6 @@ function HighScoreUI:OnDestroy()
     Debug.Log("Lua HighScoreUI OnDestroy")
 end
 
-function HighScoreUI:OnNotifiy(evt, ...)
+function HighScoreUI:OnNotifiy(evt, args)
     
 end

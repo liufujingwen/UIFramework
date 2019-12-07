@@ -54,7 +54,7 @@ public static class ExampleGenConfig
                 typeof(UIFramework.UIType),
                 typeof(UIFramework.UIResType),
                 typeof(XUnityEx),
-                typeof(GameEventManager),
+                typeof(EventManager),
             };
 
     //C#静态调用Lua的配置（包括事件的原型），仅可以配delegate，interface

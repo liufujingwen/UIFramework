@@ -47,7 +47,7 @@ namespace UIFramework
             return null;
         }
 
-        public override void OnNotify(string evt, params object[] args)
+        public override void OnNotify(string evt, IEventArgs args)
         {
         }
     }

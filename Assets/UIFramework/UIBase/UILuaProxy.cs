@@ -79,7 +79,7 @@ namespace UIFramework
             return tempGo.GetComponent(type);
         }
 
-        public override void OnNotify(string evt, params object[] args)
+        public override void OnNotify(string evt, IEventArgs args)
         {
             this.luaUI?.OnNotify(evt, args);
         }

@@ -17,7 +17,7 @@ public class UIPlayTimelineAnimation : MonoBehaviour
 
     private void OnDisable()
     {
-        Stop();
+        Stop(false);
     }
 
     private void Update()
@@ -53,6 +53,7 @@ public class UIPlayTimelineAnimation : MonoBehaviour
     {
         IsPlaying = false;
         Director.time = Length;
+        Director.Evaluate();
         ElapsedTime = 0;
         Action tempHandle = FinishedCallback;
         FinishedCallback = null;
@@ -99,7 +100,7 @@ public class UIPlayTimelineAnimation : MonoBehaviour
     }
 
     //停止播放动画
-    public void Stop()
+    public void Stop(bool evaluate = true)
     {
         if (FinishedCallback != null)
         {
@@ -111,6 +112,11 @@ public class UIPlayTimelineAnimation : MonoBehaviour
         ElapsedTime = 0;
         IsPlaying = false;
         Director?.Stop();
+
+        if (evaluate)
+        {
+            Director?.Evaluate();
+        }
     }
 
     private void OnDestroy()

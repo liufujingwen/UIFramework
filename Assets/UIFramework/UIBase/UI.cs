@@ -280,7 +280,7 @@ namespace UIFramework
                     for (int i = 0; i < UIProxy.Events.Length; i++)
                     {
                         string evt = UIProxy.Events[i];
-                        GameEventManager.Instance.RegisterEvent(evt, UIProxy.OnNotify);
+                        EventManager.instance.RegisterEvent(evt, UIProxy.OnNotify);
                     }
                 }
 
@@ -336,7 +336,7 @@ namespace UIFramework
                     for (int i = 0; i < UIProxy.Events.Length; i++)
                     {
                         string evt = UIProxy.Events[i];
-                        GameEventManager.Instance.RemoveEvent(evt, UIProxy.OnNotify);
+                        EventManager.instance.RemoveEvent(evt, UIProxy.OnNotify);
                     }
                 }
 

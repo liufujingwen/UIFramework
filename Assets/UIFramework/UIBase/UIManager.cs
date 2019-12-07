@@ -805,7 +805,7 @@ namespace UIFramework
                 return;
 
             allList.Add(ui);
-            GameEventManager.Instance.Notify(EVENT_UI_AWAKE, ui);
+            EventManager.instance.Notify(EVENT_UI_AWAKE, ui);
 
             for (int i = 0; i < nofifyList.Count; i++)
             {
@@ -836,7 +836,7 @@ namespace UIFramework
                 showList.Add(ui);
             }
 
-            GameEventManager.Instance.Notify(EVENT_UI_START, ui);
+            EventManager.instance.Notify(EVENT_UI_START, ui);
 
             for (int i = 0; i < nofifyList.Count; i++)
             {
@@ -857,7 +857,7 @@ namespace UIFramework
             if (ui == null)
                 return;
 
-            GameEventManager.Instance.Notify(EVENT_UI_ENABLE, ui);
+            EventManager.instance.Notify(EVENT_UI_ENABLE, ui);
 
             if (!showList.Contains(ui))
                 showList.Add(ui);
@@ -874,7 +874,7 @@ namespace UIFramework
             if (ui == null)
                 return;
 
-            GameEventManager.Instance.Notify(EVENT_UI_DISABLE, ui);
+            EventManager.instance.Notify(EVENT_UI_DISABLE, ui);
             showList.Remove(ui);
 
             for (int i = 0; i < nofifyList.Count; i++)
@@ -896,7 +896,7 @@ namespace UIFramework
                 return;
 
             allList.Remove(ui);
-            GameEventManager.Instance.Notify(EVENT_UI_DESTROY, ui);
+            EventManager.instance.Notify(EVENT_UI_DESTROY, ui);
 
             for (int i = 0; i < nofifyList.Count; i++)
             {
