@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if XLUA
+
+using System;
 using UnityEngine;
 using XLua;
 
@@ -84,3 +86,4 @@ namespace UIFramework
         }
     }
 }
+#endif

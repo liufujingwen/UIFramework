@@ -1,4 +1,6 @@
-﻿namespace UIFramework
+﻿#if XLUA
+
+namespace UIFramework
 {
     public interface ILuaUI
     {
@@ -18,3 +20,5 @@
         void OnNotify(string evt, params object[] args);
     }
 }
+
+#endif

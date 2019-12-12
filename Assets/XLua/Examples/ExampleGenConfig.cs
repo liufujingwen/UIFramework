@@ -66,8 +66,10 @@ public static class ExampleGenConfig
                 typeof(Action<double>),
                 typeof(UnityEngine.Events.UnityAction),
                 typeof(System.Collections.IEnumerator),
+#if XLUA
                 typeof(UIFramework.ILuaUI),
                 typeof(Func<string,UIFramework.UILuaProxy,UIFramework.ILuaUI>),
+#endif
             };
 
     //黑名单
@@ -75,9 +77,9 @@ public static class ExampleGenConfig
     public static List<List<string>> BlackList = new List<List<string>>()  {
                 new List<string>(){"System.Xml.XmlNodeList", "ItemOf"},
                 new List<string>(){"UnityEngine.WWW", "movie"},
-    #if UNITY_WEBGL
+#if UNITY_WEBGL
                 new List<string>(){"UnityEngine.WWW", "threadPriority"},
-    #endif
+#endif
                 new List<string>(){"UnityEngine.Texture2D", "alphaIsTransparency"},
                 new List<string>(){"UnityEngine.Security", "GetChainOfTrustValue"},
                 new List<string>(){"UnityEngine.CanvasRenderer", "onRequestRebuild"},
@@ -86,9 +88,9 @@ public static class ExampleGenConfig
                 new List<string>(){"UnityEngine.WWW", "MovieTexture"},
                 new List<string>(){"UnityEngine.WWW", "GetMovieTexture"},
                 new List<string>(){"UnityEngine.AnimatorOverrideController", "PerformOverrideClipListCleanup"},
-    #if !UNITY_WEBPLAYER
+#if !UNITY_WEBPLAYER
                 new List<string>(){"UnityEngine.Application", "ExternalEval"},
-    #endif
+#endif
                 new List<string>(){"UnityEngine.GameObject", "networkView"}, //4.6.2 not support
                 new List<string>(){"UnityEngine.Component", "networkView"},  //4.6.2 not support
                 new List<string>(){"System.IO.FileInfo", "GetAccessControl", "System.Security.AccessControl.AccessControlSections"},

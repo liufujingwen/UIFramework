@@ -93,7 +93,9 @@ namespace UIFramework
 
             if (this.uiData.isLuaUI)
             {
+#if XLUA
                 uiProxy = new UILuaProxy();
+#endif
             }
             else
             {
@@ -171,7 +173,7 @@ namespace UIFramework
             }
         }
 
-        #region Awake
+#region Awake
 
         public virtual void Awake()
         {
@@ -191,10 +193,10 @@ namespace UIFramework
             uiProxy?.OnAwake();
         }
 
-        #endregion
+#endregion
 
 
-        #region Start
+#region Start
 
         public virtual async Task StartAsync(params object[] args)
         {
@@ -237,10 +239,10 @@ namespace UIFramework
             uiProxy?.OnStart(args);
         }
 
-        #endregion
+#endregion
 
 
-        #region Enable
+#region Enable
 
         public async Task EnableAsync()
         {
@@ -293,10 +295,10 @@ namespace UIFramework
             uiProxy?.OnEnable();
         }
 
-        #endregion
+#endregion
 
 
-        #region Disable
+#region Disable
 
         public async Task DisableAsync()
         {
@@ -354,10 +356,10 @@ namespace UIFramework
             uiProxy?.OnDisable();
         }
 
-        #endregion
+#endregion
 
 
-        #region Destroy
+#region Destroy
 
         public virtual void PlayChildDestroyAnimation() { }
 
@@ -419,7 +421,7 @@ namespace UIFramework
             uiProxy?.OnDestroy();
         }
 
-        #endregion
+#endregion
 
         public void PlayAnimation(string animName, Action finishedCallback = null)
         {
