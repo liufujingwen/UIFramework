@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace UIFramework
+﻿namespace UIFramework
 {
     public class ChildUI : UI
     {
-        public GameUI ParentUI = null;
+        public GameUI parentUI { get; set; }
 
         public ChildUI(UIData uiData) : base(uiData)
         {

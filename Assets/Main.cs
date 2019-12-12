@@ -1,8 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 using XLua;
-using System;
 using System.IO;
 using UIFramework;
 
@@ -26,8 +23,8 @@ public class Main : MonoBehaviour
         Import("UI");
 
         DllHelper.Init();
-        UIManager.Instance.Init();
-        UIManager.Instance.Open("MainMenuUI");
+        UIManager.instance.Init();
+        UIManager.instance.Open("MainMenuUI");
     }
 
     private byte[] CustomLoader(ref string filepath)
@@ -60,20 +57,20 @@ public class Main : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.I))
         {
-            UIManager.Instance.Open("DialogUI", 1, 2, 3);
+            UIManager.instance.Open("DialogUI", 1, 2, 3);
         }
         else if (Input.GetKeyUp(KeyCode.O))
         {
-            UIManager.Instance.Close("DialogUI");
+            UIManager.instance.Close("DialogUI");
         }
         else if (Input.GetKeyUp(KeyCode.P))
         {
-            UIManager.Instance.InitUIRoot(UIResType.Resorces);
+            UIManager.instance.InitUIRoot(UIResType.Resorces);
         }
         else if (Input.GetKeyUp(KeyCode.L))
         {
             //UIManager.Instance.PopThenOpen("HighScoreUI");
-            UIManager.Instance.PopThenOpen("MainMenuUI");
+            UIManager.instance.PopThenOpen("MainMenuUI");
             //UIManager.Instance.Open("ParentUI");
         }
     }

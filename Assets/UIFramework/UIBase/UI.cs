@@ -63,64 +63,64 @@ namespace UIFramework
 
     public abstract class UI
     {
-        public TaskCompletionSource<bool> Tcs = null;
-        public UIData UiData = null;
-        public GameObject GameObject = null;
-        public Transform Transform = null;
-        public Transform ChildParentNode = null;
-        public UIStateType UIState = UIStateType.None;
-        public AnimationStateType AnimationState = AnimationStateType.None;
-        public bool AwakeState = false;
-        public int SortingOrder = 0;
-        public UIProxy UIProxy = null;
+        public TaskCompletionSource<bool> tcs { get; private set; }
+        public UIData uiData { get; set; } = null;
+        public GameObject gameObject { get; private set; } = null;
+        public Transform transform { get; private set; } = null;
+        public Transform childParentNode { get; set; } = null;
+        public UIStateType uiState { get; set; } = UIStateType.None;
+        public AnimationStateType animationState { get; private set; } = AnimationStateType.None;
+        public bool awakeState { get; set; } = false;
+        public int sortingOrder { get; set; } = 0;
+        public UIProxy uiProxy { get; set; } = null;
 
-        protected Dictionary<Canvas, int> CanvasDic = null;
+        private Dictionary<Canvas, int> m_CanvasDic = null;
 
-        Dictionary<string, PlayableDirector> PlayableDirectors = new Dictionary<string, PlayableDirector>();
+        private readonly Dictionary<string, PlayableDirector> m_PlayableDirectors = new Dictionary<string, PlayableDirector>();
 
         //当前是否播放动画
-        protected TaskCompletionSource<bool> StartPlayingAnimationTask;
-        protected TaskCompletionSource<bool> EnablePlayingAnimationTask;
-        protected TaskCompletionSource<bool> DisablePlayingAnimationTask;
-        protected TaskCompletionSource<bool> DestroyPlayingAnimationTask;
+        private TaskCompletionSource<bool> m_StartPlayingAnimationTask;
+        private TaskCompletionSource<bool> m_EnablePlayingAnimationTask;
+        private TaskCompletionSource<bool> m_DisablePlayingAnimationTask;
+        private TaskCompletionSource<bool> m_DestroyPlayingAnimationTask;
 
         protected UI(UIData uiData)
         {
-            this.UiData = uiData;
-            Tcs = new TaskCompletionSource<bool>();
+            this.uiData = uiData;
+            tcs = new TaskCompletionSource<bool>();
 
-            SortingOrder = 0;
+            sortingOrder = 0;
 
-            if (UiData.IsLuaUI)
+            if (this.uiData.isLuaUI)
             {
-                UIProxy = new UILuaProxy();
+                uiProxy = new UILuaProxy();
             }
             else
             {
-                Type type = UIManager.Instance.GetType(UiData.UiName);
-                UIProxy = Activator.CreateInstance(type) as UIProxy;
+                Type type = UIManager.instance.GetType(this.uiData.uiName);
+                uiProxy = Activator.CreateInstance(type) as UIProxy;
             }
 
-            UIProxy?.SetUi(this);
+            uiProxy?.SetUi(this);
         }
 
         public void SetGameObject(GameObject gameObject)
         {
-            this.GameObject = gameObject;
-            this.GameObject.name = this.UiData.UiName;
-            this.Transform = this.GameObject.transform;
-            this.ChildParentNode = this.Transform.FindTransform("ChildParentNode");
+            this.gameObject = gameObject;
+            this.gameObject.name = uiData.uiName;
+            transform = this.gameObject.transform;
+            childParentNode = transform.FindTransform("ChildParentNode");
 
-            UIManager.Instance.SetUIParent(this, false);
+            UIManager.instance.SetUIParent(this, false);
 
             //记录所有PlayableDirector
-            if (this.UiData.HasAnimation)
+            if (uiData.hasAnimation)
             {
-                Transform animationTrans = Transform.Find("Animation");
+                Transform animationTrans = transform.Find("Animation");
                 if (animationTrans != null)
                 {
                     PlayableDirector[] directors = animationTrans.GetComponentsInChildren<PlayableDirector>(true);
-                    PlayableDirectors.Clear();
+                    m_PlayableDirectors.Clear();
                     for (int i = 0; i < directors.Length; i++)
                     {
                         PlayableDirector director = directors[i];
@@ -130,30 +130,30 @@ namespace UIFramework
 
                         string animName = director.gameObject.name;
 
-                        if (PlayableDirectors.ContainsKey(animName))
+                        if (m_PlayableDirectors.ContainsKey(animName))
                         {
-                            Debug.LogError($"{UiData.UiName}存在同名动画:{animName}");
+                            Debug.LogError($"{uiData.uiName}存在同名动画:{animName}");
                             return;
                         }
 
                         director.playOnAwake = false;
-                        PlayableDirectors.Add(animName, director);
+                        m_PlayableDirectors.Add(animName, director);
                     }
                 }
             }
 
             //记录所有Canvas初始化的sortingOrder
-            Canvas[] tempCanvases = this.GameObject.GetComponentsInChildren<Canvas>(true);
-            CanvasDic = new Dictionary<Canvas, int>(tempCanvases.Length);
+            Canvas[] tempCanvases = this.gameObject.GetComponentsInChildren<Canvas>(true);
+            m_CanvasDic = new Dictionary<Canvas, int>(tempCanvases.Length);
             for (int i = 0; i < tempCanvases.Length; i++)
             {
                 Canvas tempCanvas = tempCanvases[i];
-                CanvasDic[tempCanvas] = tempCanvas.sortingOrder;
+                m_CanvasDic[tempCanvas] = tempCanvas.sortingOrder;
             }
 
-            this.GameObject.SetActive(false);
+            this.gameObject.SetActive(false);
 
-            UIProxy.SetGameObejct();
+            uiProxy.SetGameObejct();
         }
 
         /// <summary>
@@ -162,11 +162,11 @@ namespace UIFramework
         /// <param name="order"></param>
         public void SetCavansOrder(int order)
         {
-            this.SortingOrder = order;
+            sortingOrder = order;
 
-            if (CanvasDic != null)
+            if (m_CanvasDic != null)
             {
-                foreach (var kv in CanvasDic)
+                foreach (var kv in m_CanvasDic)
                     kv.Key.sortingOrder = kv.Value + order;
             }
         }
@@ -175,20 +175,20 @@ namespace UIFramework
 
         public virtual void Awake()
         {
-            if (this.UIState <= UIStateType.Loading)
+            if (uiState <= UIStateType.Loading)
             {
-                this.UIState = UIStateType.Awake;
-                AwakeState = true;
-                UIManager.Instance.NotifyBeforeAwake(this);
-                this.OnAwake();
-                UIManager.Instance.NotifyAfterAwake(this);
-                this.GameObject.SetActive(false);
+                uiState = UIStateType.Awake;
+                awakeState = true;
+                UIManager.instance.NotifyBeforeAwake(this);
+                OnAwake();
+                UIManager.instance.NotifyAfterAwake(this);
+                gameObject.SetActive(false);
             }
         }
 
         public void OnAwake()
         {
-            this.UIProxy?.OnAwake();
+            uiProxy?.OnAwake();
         }
 
         #endregion
@@ -198,43 +198,43 @@ namespace UIFramework
 
         public virtual async Task StartAsync(params object[] args)
         {
-            if (this.UIState <= UIStateType.Loading)
+            if (uiState <= UIStateType.Loading)
                 return;
 
-            if (this.UIState == UIStateType.Awake)
+            if (uiState == UIStateType.Awake)
             {
                 Start(args);
                 PlayChildEnableAnimation();
                 Enable();
 
-                this.AnimationState = AnimationStateType.Start;
+                animationState = AnimationStateType.Start;
 
                 //播放进场动画
-                if (this.UiData.HasAnimation)
+                if (uiData.hasAnimation)
                 {
                     if (!PlayAnimation(AnimationStateType.Start))
                         PlayAnimation(AnimationStateType.Enable);
                 }
 
-                await this.WaitAnimationFinished();
+                await WaitAnimationFinished();
             }
         }
 
         public virtual void Start(params object[] args)
         {
-            if (this.UIState == UIStateType.Awake)
+            if (uiState == UIStateType.Awake)
             {
-                this.UIState = UIStateType.Start;
-                this.GameObject?.SetActive(true);
-                UIManager.Instance.NotifyBeforeStart(this);
-                this.OnStart(args);
-                UIManager.Instance.NotifyAfterStart(this);
+                uiState = UIStateType.Start;
+                gameObject?.SetActive(true);
+                UIManager.instance.NotifyBeforeStart(this);
+                OnStart(args);
+                UIManager.instance.NotifyAfterStart(this);
             }
         }
 
         public void OnStart(params object[] args)
         {
-            this.UIProxy?.OnStart(args);
+            uiProxy?.OnStart(args);
         }
 
         #endregion
@@ -244,19 +244,19 @@ namespace UIFramework
 
         public async Task EnableAsync()
         {
-            if (this.UIState <= UIStateType.Loading)
+            if (uiState <= UIStateType.Loading)
                 return;
 
-            if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Disable)
+            if (uiState == UIStateType.Start || uiState == UIStateType.Disable)
             {
                 Enable();
                 PlayChildEnableAnimation();
-                this.AnimationState = AnimationStateType.Disable;
+                animationState = AnimationStateType.Disable;
 
                 //播放Resume动画
                 PlayAnimation(AnimationStateType.Enable);
 
-                await this.WaitAnimationFinished();
+                await WaitAnimationFinished();
             }
         }
 
@@ -266,31 +266,31 @@ namespace UIFramework
 
         public virtual void Enable()
         {
-            if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Disable)
+            if (uiState == UIStateType.Start || uiState == UIStateType.Disable)
             {
-                this.UIState = UIStateType.Enable;
-                this.GameObject?.SetActive(true);
+                uiState = UIStateType.Enable;
+                gameObject?.SetActive(true);
 
-                UIManager.Instance.NotifyBeforeEnable(this);
+                UIManager.instance.NotifyBeforeEnable(this);
 
-                this.OnEnable();
+                OnEnable();
                 //注册事件监听
-                if (UIProxy.Events != null)
+                if (uiProxy.events != null)
                 {
-                    for (int i = 0; i < UIProxy.Events.Length; i++)
+                    for (int i = 0; i < uiProxy.events.Length; i++)
                     {
-                        string evt = UIProxy.Events[i];
-                        EventManager.instance.RegisterEvent(evt, UIProxy.OnNotify);
+                        string evt = uiProxy.events[i];
+                        EventManager.instance.RegisterEvent(evt, uiProxy.OnNotify);
                     }
                 }
 
-                UIManager.Instance.NotifyAfterEnable(this);
+                UIManager.instance.NotifyAfterEnable(this);
             }
         }
 
         public void OnEnable()
         {
-            this.UIProxy?.OnEnable();
+            uiProxy?.OnEnable();
         }
 
         #endregion
@@ -300,18 +300,18 @@ namespace UIFramework
 
         public async Task DisableAsync()
         {
-            if (this.UIState <= UIStateType.Loading)
+            if (uiState <= UIStateType.Loading)
                 return;
 
-            if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Enable)
+            if (uiState == UIStateType.Start || uiState == UIStateType.Enable)
             {
                 PlayChildDisableAnimation();
-                this.AnimationState = AnimationStateType.Disable;
+                animationState = AnimationStateType.Disable;
 
                 //播放暂停动画
                 PlayAnimation(AnimationStateType.Disable);
 
-                await this.WaitAnimationFinished();
+                await WaitAnimationFinished();
 
                 Disable();
             }
@@ -323,35 +323,35 @@ namespace UIFramework
 
         public virtual void Disable()
         {
-            if (this.UIState <= UIStateType.Loading)
+            if (uiState <= UIStateType.Loading)
                 return;
 
             //只有状态为Start、Enable才能执行disable
-            if (this.UIState == UIStateType.Start || this.UIState == UIStateType.Enable)
+            if (uiState == UIStateType.Start || uiState == UIStateType.Enable)
             {
-                this.UIState = UIStateType.Disable;
+                uiState = UIStateType.Disable;
 
-                if (UIProxy.Events != null)
+                if (uiProxy.events != null)
                 {
-                    for (int i = 0; i < UIProxy.Events.Length; i++)
+                    for (int i = 0; i < uiProxy.events.Length; i++)
                     {
-                        string evt = UIProxy.Events[i];
-                        EventManager.instance.RemoveEvent(evt, UIProxy.OnNotify);
+                        string evt = uiProxy.events[i];
+                        EventManager.instance.RemoveEvent(evt, uiProxy.OnNotify);
                     }
                 }
 
-                UIManager.Instance.NotifyBeforeDisable(this);
+                UIManager.instance.NotifyBeforeDisable(this);
 
                 OnDisable();
-                this.GameObject?.SetActive(false);
+                gameObject?.SetActive(false);
 
-                UIManager.Instance.NotifyAfterDisable(this);
+                UIManager.instance.NotifyAfterDisable(this);
             }
         }
 
         public void OnDisable()
         {
-            this.UIProxy?.OnDisable();
+            uiProxy?.OnDisable();
         }
 
         #endregion
@@ -363,15 +363,15 @@ namespace UIFramework
 
         public async Task DestroyAsync()
         {
-            if (UIState <= UIStateType.Loading)
+            if (uiState <= UIStateType.Loading)
             {
                 return;
             }
 
-            if (UIState == UIStateType.Start || UIState == UIStateType.Enable)
+            if (uiState == UIStateType.Start || uiState == UIStateType.Enable)
             {
                 PlayChildDestroyAnimation();
-                AnimationState = AnimationStateType.Destroy;
+                animationState = AnimationStateType.Destroy;
 
                 //播放暂停动画
                 if (!PlayAnimation(AnimationStateType.Destroy))
@@ -387,36 +387,36 @@ namespace UIFramework
 
         public virtual void Destroy()
         {
-            if (this.UIState <= UIStateType.Loading)
+            if (uiState <= UIStateType.Loading)
                 return;
 
             Disable();
-            if (this.UIState != UIStateType.Destroy)
+            if (uiState != UIStateType.Destroy)
             {
-                UIManager.Instance.NotifyBeforeDestroy(this);
+                UIManager.instance.NotifyBeforeDestroy(this);
 
-                this.OnDestroy();
+                OnDestroy();
 
-                if (this.GameObject)
-                    GameObject.Destroy(this.GameObject);
-                GameObject = null;
-                Transform = null;
-                UIState = UIStateType.Destroy;
-                AnimationState = AnimationStateType.Destroy;
-                AwakeState = false;
-                StartPlayingAnimationTask = null;
-                EnablePlayingAnimationTask = null;
-                DisablePlayingAnimationTask = null;
-                DestroyPlayingAnimationTask = null;
-                Tcs = null;
+                if (gameObject)
+                    GameObject.Destroy(gameObject);
+                gameObject = null;
+                transform = null;
+                uiState = UIStateType.Destroy;
+                animationState = AnimationStateType.Destroy;
+                awakeState = false;
+                m_StartPlayingAnimationTask = null;
+                m_EnablePlayingAnimationTask = null;
+                m_DisablePlayingAnimationTask = null;
+                m_DestroyPlayingAnimationTask = null;
+                tcs = null;
 
-                UIManager.Instance.NotifyAfterDestroy(this);
+                UIManager.instance.NotifyAfterDestroy(this);
             }
         }
 
         public void OnDestroy()
         {
-            this.UIProxy?.OnDestroy();
+            uiProxy?.OnDestroy();
         }
 
         #endregion
@@ -424,9 +424,9 @@ namespace UIFramework
         public void PlayAnimation(string animName, Action finishedCallback = null)
         {
             PlayableDirector playableDirector = null;
-            if (!PlayableDirectors.TryGetValue(animName, out playableDirector))
+            if (!m_PlayableDirectors.TryGetValue(animName, out playableDirector))
             {
-                Debug.LogError($"{UiData.UiName}不存在动画:{animName}");
+                Debug.LogError($"{uiData.uiName}不存在动画:{animName}");
                 return;
             }
 
@@ -460,7 +460,7 @@ namespace UIFramework
             }
 
             PlayableDirector director = null;
-            if (!PlayableDirectors.TryGetValue(animName, out director))
+            if (!m_PlayableDirectors.TryGetValue(animName, out director))
             {
                 return false;
             }
@@ -475,20 +475,20 @@ namespace UIFramework
             switch (state)
             {
                 case AnimationStateType.Start:
-                    StartPlayingAnimationTask = new TaskCompletionSource<bool>();
-                    task = StartPlayingAnimationTask;
+                    m_StartPlayingAnimationTask = new TaskCompletionSource<bool>();
+                    task = m_StartPlayingAnimationTask;
                     break;
                 case AnimationStateType.Enable:
-                    EnablePlayingAnimationTask = new TaskCompletionSource<bool>();
-                    task = EnablePlayingAnimationTask;
+                    m_EnablePlayingAnimationTask = new TaskCompletionSource<bool>();
+                    task = m_EnablePlayingAnimationTask;
                     break;
                 case AnimationStateType.Disable:
-                    DisablePlayingAnimationTask = new TaskCompletionSource<bool>();
-                    task = DisablePlayingAnimationTask;
+                    m_DisablePlayingAnimationTask = new TaskCompletionSource<bool>();
+                    task = m_DisablePlayingAnimationTask;
                     break;
                 case AnimationStateType.Destroy:
-                    DestroyPlayingAnimationTask = new TaskCompletionSource<bool>();
-                    task = DestroyPlayingAnimationTask;
+                    m_DestroyPlayingAnimationTask = new TaskCompletionSource<bool>();
+                    task = m_DestroyPlayingAnimationTask;
                     break;
             }
 
@@ -507,17 +507,17 @@ namespace UIFramework
         /// <returns></returns>
         public virtual async Task WaitAnimationFinished()
         {
-            if (StartPlayingAnimationTask != null)
-                await StartPlayingAnimationTask.Task;
+            if (m_StartPlayingAnimationTask != null)
+                await m_StartPlayingAnimationTask.Task;
 
-            if (EnablePlayingAnimationTask != null)
-                await EnablePlayingAnimationTask.Task;
+            if (m_EnablePlayingAnimationTask != null)
+                await m_EnablePlayingAnimationTask.Task;
 
-            if (DisablePlayingAnimationTask != null)
-                await DisablePlayingAnimationTask.Task;
+            if (m_DisablePlayingAnimationTask != null)
+                await m_DisablePlayingAnimationTask.Task;
 
-            if (DestroyPlayingAnimationTask != null)
-                await DestroyPlayingAnimationTask.Task;
+            if (m_DestroyPlayingAnimationTask != null)
+                await m_DestroyPlayingAnimationTask.Task;
         }
 
         /// <summary>

@@ -1,9 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
 using UIFramework;
 using UnityEngine.EventSystems;
 
@@ -21,22 +16,22 @@ public class MainMenuUI : UIMonoProxy
 
     void OnClickParentUIButton(PointerEventData eventData)
     {
-        UIManager.Instance.Open("ParentUI");
+        UIManager.instance.Open("ParentUI");
     }
 
     void OnClickHighScoresBtn(PointerEventData eventData)
     {
-        UIManager.Instance.Open("HighScoreUI");
+        UIManager.instance.Open("HighScoreUI");
     }
 
     void OnClickOptionBtn(PointerEventData eventData)
     {
-        UIManager.Instance.Open("OptionMenuUI");
+        UIManager.instance.Open("OptionMenuUI");
     }
 
     void OnClickExitBtn(PointerEventData eventData)
     {
-        UIManager.Instance.Pop();
+        UIManager.instance.Pop();
     }
 
     public override void OnStart(params object[] args)

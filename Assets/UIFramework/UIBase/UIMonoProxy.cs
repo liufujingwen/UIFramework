@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace UIFramework
 {
@@ -11,8 +6,8 @@ namespace UIFramework
     {
         public override void SetUi(UI ui)
         {
-            this.UI = ui;
-            this.Events = OnGetEvents();
+            this.ui = ui;
+            events = OnGetEvents();
         }
 
         public override void OnAwake()
@@ -37,9 +32,9 @@ namespace UIFramework
 
         public T FindComponent<T>(string name) where T : Component
         {
-            if (UI == null || UI == null || !UI.GameObject)
+            if (ui == null || ui == null || !ui.gameObject)
                 return null;
-            return UI.GameObject.FindComponent<T>(name);
+            return ui.gameObject.FindComponent<T>(name);
         }
 
         public override string[] OnGetEvents()

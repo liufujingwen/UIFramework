@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace UIFramework
 {
@@ -11,27 +7,27 @@ namespace UIFramework
         /// <summary>
         /// UI名字
         /// </summary>
-        public string UiName = null;
+        public string uiName { get; set; }
 
         /// <summary>
         /// UI类型
         /// </summary>
-        public UIType UiType = UIType.Normal;
+        public UIType uiType { get; set; } = UIType.Normal;
 
         /// <summary>
         /// UI加载方式
         /// </summary>
-        public UIResType UIResType = UIResType.Resorces;
+        public UIResType uiResType { get; set; } = UIResType.Resorces;
 
         /// <summary>
         /// UI是否有动画
         /// </summary>
-        public bool HasAnimation = false;
+        public bool hasAnimation { get; set; } = false;
 
         /// <summary>
         /// 是否在Lua处理逻辑
         /// </summary>
-        public bool IsLuaUI = false;
+        public bool isLuaUI { get; set; } = false;
 
 
         #region 子UI
@@ -39,25 +35,25 @@ namespace UIFramework
         /// <summary>
         /// 是否有子UI
         /// </summary>
-        public bool HasChildUI => ChildDic != null && ChildDic.Count > 0;
+        public bool hasChildUI => childDic != null && childDic.Count > 0;
 
         //保存子UI信息
-        public Dictionary<string, UIData> ChildDic = null;
+        public Dictionary<string, UIData> childDic { get; set; }
 
         /// <summary>
         /// 是否子UI,有父窗口说明就是子UI
         /// </summary>
-        public bool IsChildUI => !string.IsNullOrEmpty(ParentUIName);
+        public bool isChildUI => !string.IsNullOrEmpty(parentUIName);
 
         /// <summary>
         /// 父UI
         /// </summary>
-        public string ParentUIName;
+        public string parentUIName { get; set; }
 
         /// <summary>
         /// 是否和父窗口一起加载
         /// </summary>
-        public bool LoadWithParent = false;
+        public bool loadWithParent { get; set; }
 
         #endregion
     }

@@ -2,15 +2,15 @@ LuaUI = Class("LuaUI")
 
 function LuaUI:Ctor(name, uiProxy)
 
-    self.Name = name
-    self.UIProxy = uiProxy
-    self.UI = uiProxy.UI
+    self.name = name
+    self.uiProxy = uiProxy
+    self.ui = uiProxy.ui
 
 end
 
 function LuaUI:SetGameObject()
-    self.Transform = self.UI.Transform
-    self.GameObject = self.UI.GameObject
+    self.transform = self.ui.transform
+    self.gameObject = self.ui.gameObject
 end
 
 function LuaUI:OnAwake()
@@ -38,7 +38,7 @@ end
 function LuaUI:RegisterListener(button, handle, clear)
 
     clear = clear and true or false
-    self.UIProxy:RegisterListener(button, function()
+    self.uiProxy:RegisterListener(button, function()
         if handle then
             handle(self)
         end
@@ -47,18 +47,18 @@ function LuaUI:RegisterListener(button, handle, clear)
 end
 
 function LuaUI:FindComponent(name, type)
-    return self.UIProxy:FindComponent(name, type)
+    return self.uiProxy:FindComponent(name, type)
 end
 
 function LuaUI:OpenChildUI(childUIName, ...)
-    self.UIProxy:OpenChildUI(childUIName, ...)
+    self.uiProxy:OpenChildUI(childUIName, ...)
 end
 
 function LuaUI:CloseChildUI(childUIName)
-    self.UIProxy:CloseChildUI(childUIName)
+    self.uiProxy:CloseChildUI(childUIName)
 end
 
 --快捷关闭界面
 function LuaUI:Close()
-    self.UIProxy:Close()
+    self.uiProxy:Close()
 end

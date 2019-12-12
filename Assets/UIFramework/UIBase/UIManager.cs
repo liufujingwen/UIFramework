@@ -1,17 +1,17 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
-using XLua;
 
 namespace UIFramework
 {
     /// <summary>
     /// UI管理器
     /// </summary>
-    public class UIManager : Singleton<UIManager>
+    public class UIManager
     {
+        public static UIManager instance { get; } = new UIManager();
+
         //UI生命周期事件
         public const string EVENT_UI_AWAKE = "EVENT_UI_AWAKE";//UI执行Awake通知
         public const string EVENT_UI_START = "EVENT_UI_START";//UI执行Start通知
@@ -19,60 +19,60 @@ namespace UIFramework
         public const string EVENT_UI_DISABLE = "EVENT_UI_DISABLE";//UI执行Disable通知
         public const string EVENT_UI_DESTROY = "EVENT_UI_DESTROY";//UI执行Destroy通知
 
-        //所有一级UI必须注册后才能创建
-        private Dictionary<string, UIData> uiRegisterDic = new Dictionary<string, UIData>();
-
-        //C#的UI逻辑Type
-        private Dictionary<string, Type> uiTypeDic = new Dictionary<string, Type>();
-
-        //遮罩go，这个mask的作用是防止一切的点击
-        private GameObject maskGo = null;
-        //mask引用计数器
-        private int maskCount = 0;
-
-        /// <summary>
-        /// 显示管理器
-        /// </summary>
-        private Dictionary<UIType, IUIContainer> showDic = new Dictionary<UIType, IUIContainer>();
-
-        //HUD相机
-        private Camera hudCamera = null;
-        //UI相机
-        private Camera uiCamera = null;
-        //UIRoot
-        private Transform uiRoot = null;
-        //不销毁的UI存放位置
-        private Transform poolCanvas = null;
-        //保存UIType对应的界面父节点
-        private Dictionary<UIType, Canvas> canvasDic = new Dictionary<UIType, Canvas>();
-
         /// <summary>
         /// 忽略Mask的类型
         /// </summary>
-        public const UIType IgnoreMaskType = UIType.Tips | UIType.TopMask | UIType.Top;
+        public const UIType IGNORE_MASK_TYPE = UIType.Tips | UIType.TopMask | UIType.Top;
 
         /// <summary>
         /// 堆栈管理的UI类型
         /// </summary>
-        public const UIType StackType = UIType.Normal | UIType.NormalPopup | UIType.Popup;
+        public const UIType STACK_TYPE = UIType.Normal | UIType.NormalPopup | UIType.Popup;
 
         //共享Normal栈的类型
-        public const UIType ShareNormalType = UIType.Normal | UIType.NormalPopup;
+        public const UIType SHARE_NORMAL_TYPE = UIType.Normal | UIType.NormalPopup;
+
+        //所有一级UI必须注册后才能创建
+        private readonly Dictionary<string, UIData> m_UIRegisterDic = new Dictionary<string, UIData>();
+
+        //C#的UI逻辑Type
+        private readonly Dictionary<string, Type> m_UITypeDic = new Dictionary<string, Type>();
+
+        //遮罩go，这个mask的作用是防止一切的点击
+        private GameObject m_MaskGO = null;
+        //mask引用计数器
+        private int m_MaskCount = 0;
+
+        /// <summary>
+        /// 显示管理器
+        /// </summary>
+        private readonly Dictionary<UIType, IUIContainer> m_ShowDic = new Dictionary<UIType, IUIContainer>();
+
+        //HUD相机
+        private Camera m_HUDCamera = null;
+        //UI相机
+        private Camera m_UICamera = null;
+        //UIRoot
+        private Transform m_UIRoot = null;
+        //不销毁的UI存放位置
+        private Transform m_PoolCanvas = null;
+        //保存UIType对应的界面父节点
+        private readonly Dictionary<UIType, Canvas> m_CanvasDic = new Dictionary<UIType, Canvas>();
 
         /// <summary>
         /// 正在关闭全部（避免在关闭过程中有些UI写了打开某个ui在disable、destroy里面）
         /// </summary>
-        public bool ClosingAll = false;
+        public bool closingAll { get; private set; } = false;
 
         /// <summary>
         /// 当前显示的UI,包含子UI
         /// </summary>
-        List<UI> showList = new List<UI>();
+        private readonly List<UI> m_ShowList = new List<UI>();
 
         /// <summary>
         /// 已加载的所有UI
         /// </summary>
-        List<UI> allList = new List<UI>();
+        private readonly List<UI> m_AllLoadList = new List<UI>();
 
         public void Init()
         {
@@ -87,26 +87,26 @@ namespace UIFramework
         /// </summary>
         public void CreateMask()
         {
-            maskGo = GameObject.Instantiate(Resources.Load("UI/MaskUI")) as GameObject;
-            Canvas topCanvas = canvasDic[UIType.Top];
-            Canvas maskCanvas = maskGo.GetComponent<Canvas>();
+            m_MaskGO = UnityEngine.Object.Instantiate(Resources.Load("UI/MaskUI")) as GameObject;
+            Canvas topCanvas = m_CanvasDic[UIType.Top];
+            Canvas maskCanvas = m_MaskGO.GetComponent<Canvas>();
             maskCanvas.sortingOrder = topCanvas.sortingOrder;
-            maskGo.transform.SetParent(topCanvas.transform, false);
-            maskGo.SetActive(false);
+            m_MaskGO.transform.SetParent(topCanvas.transform, false);
+            m_MaskGO.SetActive(false);
         }
 
         //控制mask的显隐
         public void SetMask(bool visible)
         {
-            maskCount += visible ? 1 : -1;
-            maskGo.SetActive(maskCount > 0);
+            m_MaskCount += visible ? 1 : -1;
+            m_MaskGO.SetActive(m_MaskCount > 0);
         }
 
         //清除mask，计数器设置为0
         public void ClearMask()
         {
-            maskCount = 0;
-            maskGo.SetActive(maskCount > 0);
+            m_MaskCount = 0;
+            m_MaskGO.SetActive(m_MaskCount > 0);
         }
 
         public void InitUIRoot(UIResType uiResType)
@@ -136,12 +136,12 @@ namespace UIFramework
                 return;
 
             //先记录旧的UIRoot
-            Transform oldUIRoot = this.uiRoot;
+            Transform oldUIRoot = this.m_UIRoot;
 
-            this.uiRoot = uiRoot;
-            hudCamera = uiRoot.gameObject.FindComponent<Camera>("CameraHUD");
-            uiCamera = uiRoot.gameObject.FindComponent<Camera>("Camera");
-            poolCanvas = uiRoot.FindTransform("CanvasPool");
+            m_UIRoot = uiRoot;
+            m_HUDCamera = uiRoot.gameObject.FindComponent<Camera>("CameraHUD");
+            m_UICamera = uiRoot.gameObject.FindComponent<Camera>("Camera");
+            m_PoolCanvas = uiRoot.FindTransform("CanvasPool");
 
             Array uiTypeArray = Enum.GetValues(typeof(UIType));
             foreach (UIType uiType in uiTypeArray)
@@ -149,42 +149,42 @@ namespace UIFramework
                 if (uiType == UIType.Child)
                     continue;
 
-                if (uiType != UIType.Normal && (uiType & ShareNormalType) != 0)
+                if (uiType != UIType.Normal && (uiType & SHARE_NORMAL_TYPE) != 0)
                     continue;
 
                 Canvas tempCanvas = uiRoot.gameObject.FindComponent<Canvas>($"Canvas{uiType}");
-                canvasDic[uiType] = tempCanvas;
+                m_CanvasDic[uiType] = tempCanvas;
 
-                if (!showDic.ContainsKey(uiType))
+                if (!m_ShowDic.ContainsKey(uiType))
                 {
-                    if ((uiType & StackType) != 0)
-                        showDic[uiType] = new UIStackContainer(uiType, tempCanvas.sortingOrder);
+                    if ((uiType & STACK_TYPE) != 0)
+                        m_ShowDic[uiType] = new UIStackContainer(uiType, tempCanvas.sortingOrder);
                     else
-                        showDic[uiType] = new UIListContainer(uiType, tempCanvas.sortingOrder);
+                        m_ShowDic[uiType] = new UIListContainer(uiType, tempCanvas.sortingOrder);
                 }
             }
 
             //设置共享Normal层级的类型
             foreach (UIType uiType in uiTypeArray)
             {
-                if ((uiType & ShareNormalType) == 0)
+                if ((uiType & SHARE_NORMAL_TYPE) == 0)
                     continue;
-                showDic[uiType] = showDic[UIType.Normal];
+                m_ShowDic[uiType] = m_ShowDic[UIType.Normal];
             }
 
             //改变ui的父节点
-            foreach (var kv in showDic)
+            foreach (var kv in m_ShowDic)
             {
-                if (kv.Key != UIType.Normal && (kv.Key & ShareNormalType) != 0)
+                if (kv.Key != UIType.Normal && (kv.Key & SHARE_NORMAL_TYPE) != 0)
                     continue;
-                kv.Value.SetUiParent(canvasDic[kv.Key].transform, false);
+                kv.Value.SetUiParent(m_CanvasDic[kv.Key].transform, false);
             }
 
             //改变mask的父节点
-            if (maskGo != null)
+            if (m_MaskGO != null)
             {
-                Transform topCanvas = canvasDic[UIType.Top].transform;
-                maskGo.transform.SetParent(topCanvas, false);
+                Transform topCanvas = m_CanvasDic[UIType.Top].transform;
+                m_MaskGO.transform.SetParent(topCanvas, false);
             }
 
             if (oldUIRoot != null)
@@ -197,7 +197,7 @@ namespace UIFramework
         void InitTypes()
         {
             //获取所有Mono的UIType
-            uiTypeDic.Clear();
+            m_UITypeDic.Clear();
             Type[] types = DllHelper.GetMonoTypes();
             for (int i = 0; i < types.Length; i++)
             {
@@ -208,8 +208,8 @@ namespace UIFramework
                     UIAttribute uiAttribute = (UIAttribute)attr;
                     if (uiAttribute != null)
                     {
-                        uiTypeDic[uiAttribute.UIName] = type;
-                        Register(uiAttribute.UIName, uiAttribute.UIType, uiAttribute.UIResType, uiAttribute.HasAnimation, false);
+                        m_UITypeDic[uiAttribute.uiName] = type;
+                        Register(uiAttribute.uiName, uiAttribute.uiType, uiAttribute.uiResType, uiAttribute.hasAnimation, false);
                     }
                 }
 
@@ -219,8 +219,8 @@ namespace UIFramework
                     UIChildAttribute childAttribute = (UIChildAttribute)attr;
                     if (childAttribute != null)
                     {
-                        uiTypeDic[childAttribute.UIName] = type;
-                        RegisterChild(childAttribute.UIName, childAttribute.ParentUIName, childAttribute.LoadWithParent, childAttribute.UIResType, childAttribute.HasAnimation, false);
+                        m_UITypeDic[childAttribute.uiName] = type;
+                        RegisterChild(childAttribute.uiName, childAttribute.parentUIName, childAttribute.loadWithParent, childAttribute.uiResType, childAttribute.hasAnimation, false);
                     }
                 }
             }
@@ -231,16 +231,16 @@ namespace UIFramework
         /// </summary>
         public void ProcessingUIDataMapping()
         {
-            foreach (var kv in uiRegisterDic)
+            foreach (var kv in m_UIRegisterDic)
             {
                 UIData uiData = null;
-                if (!string.IsNullOrEmpty(kv.Value.ParentUIName))
+                if (!string.IsNullOrEmpty(kv.Value.parentUIName))
                 {
-                    if (uiRegisterDic.TryGetValue(kv.Value.ParentUIName, out uiData))
+                    if (m_UIRegisterDic.TryGetValue(kv.Value.parentUIName, out uiData))
                     {
-                        if (uiData.ChildDic == null)
-                            uiData.ChildDic = new Dictionary<string, UIData>(5);
-                        uiData.ChildDic.Add(kv.Key, kv.Value);
+                        if (uiData.childDic == null)
+                            uiData.childDic = new Dictionary<string, UIData>(5);
+                        uiData.childDic.Add(kv.Key, kv.Value);
                     }
                 }
             }
@@ -256,13 +256,13 @@ namespace UIFramework
         public void Register(string uiName, UIType uiType, UIResType uiResType, bool hasAnimation, bool isLuaUI)
         {
             UIData uiData = new UIData();
-            uiData.UiName = uiName;
-            uiData.UiType = uiType;
-            uiData.UIResType = uiResType;
-            uiData.HasAnimation = hasAnimation;
-            uiData.IsLuaUI = isLuaUI;
-            uiData.ParentUIName = null;
-            uiRegisterDic.Add(uiName, uiData);
+            uiData.uiName = uiName;
+            uiData.uiType = uiType;
+            uiData.uiResType = uiResType;
+            uiData.hasAnimation = hasAnimation;
+            uiData.isLuaUI = isLuaUI;
+            uiData.parentUIName = null;
+            m_UIRegisterDic.Add(uiName, uiData);
         }
 
         /// <summary>
@@ -278,21 +278,21 @@ namespace UIFramework
         public void RegisterChild(string uiName, string parentUIName, bool loadWithParent, UIResType uiResType, bool hasAnimation, bool isLuaUI)
         {
             UIData uiData = new UIData();
-            uiData.UiName = uiName;
-            uiData.ParentUIName = parentUIName;
-            uiData.LoadWithParent = loadWithParent;
-            uiData.UiType = UIType.Child;
-            uiData.UIResType = uiResType;
-            uiData.HasAnimation = hasAnimation;
-            uiData.IsLuaUI = isLuaUI;
-            uiRegisterDic.Add(uiName, uiData);
+            uiData.uiName = uiName;
+            uiData.parentUIName = parentUIName;
+            uiData.loadWithParent = loadWithParent;
+            uiData.uiType = UIType.Child;
+            uiData.uiResType = uiResType;
+            uiData.hasAnimation = hasAnimation;
+            uiData.isLuaUI = isLuaUI;
+            m_UIRegisterDic.Add(uiName, uiData);
         }
 
         public GameUI CreateUI(string uiName)
         {
             //加载新UI
             UIData uiData = null;
-            uiRegisterDic.TryGetValue(uiName, out uiData);
+            m_UIRegisterDic.TryGetValue(uiName, out uiData);
 
             if (uiData == null)
             {
@@ -300,7 +300,7 @@ namespace UIFramework
                 return null;
             }
 
-            if (uiData.IsChildUI)
+            if (uiData.isChildUI)
             {
                 Debug.LogError($"子UI:{uiName}不能使用CreateUI创建");
                 return null;
@@ -309,9 +309,9 @@ namespace UIFramework
             GameUI ui = new GameUI(uiData);
 
             //创建子UI
-            if (ui.UiData.HasChildUI)
+            if (ui.uiData.hasChildUI)
             {
-                foreach (var kv in ui.UiData.ChildDic)
+                foreach (var kv in ui.uiData.childDic)
                 {
                     ChildUI childUi = ui.FindChildUi(kv.Key);
                     if (childUi != null)
@@ -337,7 +337,7 @@ namespace UIFramework
             await TryLoadChildUI(ui);
 
             //保证所有UI只执行一次Awake
-            if (!ui.AwakeState)
+            if (!ui.awakeState)
                 ui.Awake();
         }
 
@@ -348,9 +348,9 @@ namespace UIFramework
         /// <returns></returns>
         private Task LoadUiTask(UI ui)
         {
-            if (ui.UIState == UIStateType.None)
+            if (ui.uiState == UIStateType.None)
                 LoadAsset(ui);
-            return ui.Tcs.Task;
+            return ui.tcs.Task;
         }
 
         /// <summary>
@@ -359,11 +359,11 @@ namespace UIFramework
         /// <returns></returns>
         public async Task TryLoadChildUI(UI ui)
         {
-            if (ui.UiData.HasChildUI)
+            if (ui.uiData.hasChildUI)
             {
-                foreach (var kv in ui.UiData.ChildDic)
+                foreach (var kv in ui.uiData.childDic)
                 {
-                    if (kv.Value.LoadWithParent)
+                    if (kv.Value.loadWithParent)
                     {
                         GameUI gameUI = ui as GameUI;
                         ChildUI childUi = gameUI.FindChildUi(kv.Key);
@@ -383,42 +383,42 @@ namespace UIFramework
             if (ui == null)
                 return;
 
-            if (!ui.Transform)
+            if (!ui.transform)
                 return;
 
             Canvas tempCanvas = null;
 
-            UIType uiType = ui.UiData.UiType;
+            UIType uiType = ui.uiData.uiType;
 
-            if (uiType != UIType.Child && (ui.UiData.UiType & ShareNormalType) != 0)
+            if (uiType != UIType.Child && (ui.uiData.uiType & SHARE_NORMAL_TYPE) != 0)
             {
                 uiType = UIType.Normal;
             }
 
-            if (canvasDic.TryGetValue(uiType, out tempCanvas))
+            if (m_CanvasDic.TryGetValue(uiType, out tempCanvas))
             {
-                if (!ui.Transform.IsChildOf(tempCanvas.transform))
-                    ui.Transform.SetParent(tempCanvas.transform, worldPositionStays);
+                if (!ui.transform.IsChildOf(tempCanvas.transform))
+                    ui.transform.SetParent(tempCanvas.transform, worldPositionStays);
             }
             else if (uiType == UIType.Child)
             {
                 ChildUI childUi = ui as ChildUI;
-                if (childUi.ParentUI != null && childUi.ParentUI.ChildParentNode)
+                if (childUi.parentUI != null && childUi.parentUI.childParentNode)
                 {
-                    if (!ui.Transform.IsChildOf(childUi.ParentUI.ChildParentNode))
-                        ui.Transform.SetParent(childUi.ParentUI.ChildParentNode, worldPositionStays);
+                    if (!ui.transform.IsChildOf(childUi.parentUI.childParentNode))
+                        ui.transform.SetParent(childUi.parentUI.childParentNode, worldPositionStays);
                 }
-                else if (!ui.Transform.IsChildOf(childUi.ParentUI.Transform))
+                else if (!ui.transform.IsChildOf(childUi.parentUI.transform))
                 {
-                    ui.Transform.SetParent(childUi.ParentUI.Transform, worldPositionStays);
+                    ui.transform.SetParent(childUi.parentUI.transform, worldPositionStays);
                 }
             }
 
             if (worldPositionStays)
             {
-                ui.Transform.localScale = Vector3.one;
-                ui.Transform.localPosition = Vector3.zero;
-                ui.Transform.localRotation = Quaternion.identity;
+                ui.transform.localScale = Vector3.one;
+                ui.transform.localPosition = Vector3.zero;
+                ui.transform.localRotation = Quaternion.identity;
             }
         }
 
@@ -434,7 +434,7 @@ namespace UIFramework
                 return;
 
             Canvas tempCanvas = null;
-            if (canvasDic.TryGetValue(uiType, out tempCanvas))
+            if (m_CanvasDic.TryGetValue(uiType, out tempCanvas))
             {
                 if (transform.parent != tempCanvas.transform)
                     transform.SetParent(tempCanvas.transform, worldPositionStays);
@@ -443,7 +443,7 @@ namespace UIFramework
             {
                 //子UI暂时放到poolCanvas
                 if (transform.parent == null)
-                    transform.SetParent(poolCanvas.transform, worldPositionStays);
+                    transform.SetParent(m_PoolCanvas.transform, worldPositionStays);
             }
         }
 
@@ -454,7 +454,7 @@ namespace UIFramework
         private UIData FindUIData(string uiName)
         {
             UIData uiData = null;
-            uiRegisterDic.TryGetValue(uiName, out uiData);
+            m_UIRegisterDic.TryGetValue(uiName, out uiData);
             return uiData;
         }
 
@@ -473,7 +473,7 @@ namespace UIFramework
             }
 
             IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiData.UiType, out uiContainer))
+            if (m_ShowDic.TryGetValue(uiData.uiType, out uiContainer))
                 uiContainer?.Open(uiName, null, args);
         }
 
@@ -485,7 +485,7 @@ namespace UIFramework
         public void Open(UI ui, params object[] args)
         {
             IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(ui.UiData.UiType, out uiContainer))
+            if (m_ShowDic.TryGetValue(ui.uiData.uiType, out uiContainer))
                 uiContainer?.Open(ui, null, args);
         }
 
@@ -505,7 +505,7 @@ namespace UIFramework
             }
 
             IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiData.UiType, out uiContainer))
+            if (m_ShowDic.TryGetValue(uiData.uiType, out uiContainer))
                 uiContainer?.Open(uiName, callback, args);
         }
 
@@ -525,7 +525,7 @@ namespace UIFramework
         public void Pop(UIType uiType)
         {
             IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiType, out uiContainer))
+            if (m_ShowDic.TryGetValue(uiType, out uiContainer))
                 uiContainer?.Pop(null);
         }
 
@@ -546,7 +546,7 @@ namespace UIFramework
         public void PopWithCallback(UIType uiType, Action callback)
         {
             IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiType, out uiContainer))
+            if (m_ShowDic.TryGetValue(uiType, out uiContainer))
                 uiContainer?.Pop(callback);
         }
 
@@ -569,7 +569,7 @@ namespace UIFramework
         public void PopThenOpen(UIType uiType, string uiName, params object[] args)
         {
             IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiType, out uiContainer))
+            if (m_ShowDic.TryGetValue(uiType, out uiContainer))
                 uiContainer?.PopThenOpen(uiName, args);
         }
 
@@ -592,7 +592,7 @@ namespace UIFramework
         public void PopAllThenOpen(UIType uiType, string uiName, params object[] args)
         {
             IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiType, out uiContainer))
+            if (m_ShowDic.TryGetValue(uiType, out uiContainer))
                 uiContainer?.PopAllThenOpen(uiName, args);
         }
 
@@ -603,19 +603,19 @@ namespace UIFramework
         public void Close(string uiName)
         {
             UIData uiData = null;
-            uiRegisterDic.TryGetValue(uiName, out uiData);
+            m_UIRegisterDic.TryGetValue(uiName, out uiData);
             if (uiData == null)
                 return;
 
             IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiData.UiType, out uiContainer))
+            if (m_ShowDic.TryGetValue(uiData.uiType, out uiContainer))
             {
                 if (uiContainer is UIStackContainer)
                 {
                     //当前UI在栈顶才能被关闭
                     UIStackContainer uiStackContainer = uiContainer as UIStackContainer;
                     UI ui = uiStackContainer.Peek();
-                    if (ui != null && ui.UiData.UiName == uiName)
+                    if (ui != null && ui.uiData.uiName == uiName)
                         uiContainer?.Pop(null);
                 }
                 else
@@ -633,19 +633,19 @@ namespace UIFramework
         public void CloseWithCallback(string uiName, Action callback)
         {
             UIData uiData = null;
-            uiRegisterDic.TryGetValue(uiName, out uiData);
+            m_UIRegisterDic.TryGetValue(uiName, out uiData);
             if (uiData == null)
                 return;
 
             IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiData.UiType, out uiContainer))
+            if (m_ShowDic.TryGetValue(uiData.uiType, out uiContainer))
             {
                 if (uiContainer is UIStackContainer)
                 {
                     //当前UI在栈顶才能被关闭
                     UIStackContainer uiStackContainer = uiContainer as UIStackContainer;
                     UI ui = uiStackContainer.Peek();
-                    if (ui != null && ui.UiData.UiName == uiName)
+                    if (ui != null && ui.uiData.uiName == uiName)
                         uiContainer?.Pop(callback);
                 }
                 else
@@ -662,12 +662,12 @@ namespace UIFramework
         public void Remove(string uiName)
         {
             UIData uiData = null;
-            uiRegisterDic.TryGetValue(uiName, out uiData);
+            m_UIRegisterDic.TryGetValue(uiName, out uiData);
             if (uiData == null)
                 return;
 
             IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiData.UiType, out uiContainer))
+            if (m_ShowDic.TryGetValue(uiData.uiType, out uiContainer))
                 uiContainer?.Remove(uiName);
         }
 
@@ -678,12 +678,12 @@ namespace UIFramework
         public void RemoveOne(string uiName)
         {
             UIData uiData = null;
-            uiRegisterDic.TryGetValue(uiName, out uiData);
+            m_UIRegisterDic.TryGetValue(uiName, out uiData);
             if (uiData == null)
                 return;
 
             IUIContainer uiContainer = null;
-            if (showDic.TryGetValue(uiData.UiType, out uiContainer))
+            if (m_ShowDic.TryGetValue(uiData.uiType, out uiContainer))
                 uiContainer?.RemoveOne(uiName);
         }
 
@@ -695,7 +695,7 @@ namespace UIFramework
         public Type GetType(string uiName)
         {
             Type type = null;
-            uiTypeDic.TryGetValue(uiName, out type);
+            m_UITypeDic.TryGetValue(uiName, out type);
             return type;
         }
 
@@ -704,11 +704,11 @@ namespace UIFramework
         /// </summary>
         public void Clear()
         {
-            ClosingAll = true;
-            UIManager.Instance.ClearMask();
-            foreach (var kv in showDic)
+            closingAll = true;
+            UIManager.instance.ClearMask();
+            foreach (var kv in m_ShowDic)
                 kv.Value.Clear();
-            ClosingAll = false;
+            closingAll = false;
         }
 
         /// <summary>
@@ -716,48 +716,52 @@ namespace UIFramework
         /// </summary>
         public void ClearByType(UIType uiType)
         {
-            ClosingAll = true;
-            UIManager.Instance.ClearMask();
-            foreach (var kv in showDic)
+            closingAll = true;
+            UIManager.instance.ClearMask();
+            foreach (var kv in m_ShowDic)
             {
                 if ((kv.Key & uiType) != 0)
                     kv.Value.Clear();
             }
-            ClosingAll = false;
+            closingAll = false;
         }
 
         //模拟异步加载资源
         void LoadAsset(UI ui)
         {
-            if (ui.UiData.UIResType != UIResType.SetGameObject)
+            if (ui.uiData.uiResType != UIResType.SetGameObject)
             {
-                ui.UIState = UIStateType.Loading;
-                GameObject go = GameObject.Instantiate(Resources.Load<GameObject>(GetAssetUrl(ui.UiData.UiName))) as GameObject;
+                ui.uiState = UIStateType.Loading;
+                GameObject orignal = Resources.Load<GameObject>(GetAssetUrl(ui.uiData.uiName));
+                if (orignal.activeSelf)
+                    orignal.SetActive(true);
+
+                GameObject go = UnityEngine.Object.Instantiate(orignal) as GameObject;
 
                 ui.SetGameObject(go);
 
-                if (ui.Tcs != null)
-                    ui.Tcs.SetResult(true);
+                if (ui.tcs != null)
+                    ui.tcs.SetResult(true);
             }
             else
             {
                 //处理SetGameObject的子UI
                 ChildUI childUi = ui as ChildUI;
 
-                if (childUi != null && childUi.ParentUI != null)
+                if (childUi != null && childUi.parentUI != null)
                 {
-                    ui.UIState = UIStateType.Loading;
-                    GameObject childGameObject = childUi.ParentUI.GameObject.FindGameObject(childUi.UiData.UiName);
+                    ui.uiState = UIStateType.Loading;
+                    GameObject childGameObject = childUi.parentUI.gameObject.FindGameObject(childUi.uiData.uiName);
                     if (childGameObject == null)
                     {
-                        Debug.LogErrorFormat("父UI:{0}不存在子UI节点:{1}", childUi.UiData.ParentUIName, childUi.UiData.UiName);
+                        Debug.LogErrorFormat("父UI:{0}不存在子UI节点:{1}", childUi.uiData.parentUIName, childUi.uiData.uiName);
                     }
                     else
                     {
                         ui.SetGameObject(childGameObject);
 
-                        if (ui.Tcs != null)
-                            ui.Tcs.SetResult(true);
+                        if (ui.tcs != null)
+                            ui.tcs.SetResult(true);
                     }
                 }
             }
@@ -804,7 +808,7 @@ namespace UIFramework
             if (ui == null)
                 return;
 
-            allList.Add(ui);
+            m_AllLoadList.Add(ui);
             EventManager.instance.Notify(EVENT_UI_AWAKE, ui);
 
             for (int i = 0; i < nofifyList.Count; i++)
@@ -831,9 +835,9 @@ namespace UIFramework
             if (ui == null)
                 return;
 
-            if (!showList.Contains(ui))
+            if (!m_ShowList.Contains(ui))
             {
-                showList.Add(ui);
+                m_ShowList.Add(ui);
             }
 
             EventManager.instance.Notify(EVENT_UI_START, ui);
@@ -859,8 +863,8 @@ namespace UIFramework
 
             EventManager.instance.Notify(EVENT_UI_ENABLE, ui);
 
-            if (!showList.Contains(ui))
-                showList.Add(ui);
+            if (!m_ShowList.Contains(ui))
+                m_ShowList.Add(ui);
 
             for (int i = 0; i < nofifyList.Count; i++)
             {
@@ -875,7 +879,7 @@ namespace UIFramework
                 return;
 
             EventManager.instance.Notify(EVENT_UI_DISABLE, ui);
-            showList.Remove(ui);
+            m_ShowList.Remove(ui);
 
             for (int i = 0; i < nofifyList.Count; i++)
             {
@@ -895,7 +899,7 @@ namespace UIFramework
             if (ui == null)
                 return;
 
-            allList.Remove(ui);
+            m_AllLoadList.Remove(ui);
             EventManager.instance.Notify(EVENT_UI_DESTROY, ui);
 
             for (int i = 0; i < nofifyList.Count; i++)
@@ -925,18 +929,18 @@ namespace UIFramework
             }
 
             //没有加载、或者已释放直接返回
-            if (ui.UIState == UIStateType.None || ui.UIState == UIStateType.Release)
+            if (ui.uiState == UIStateType.None || ui.uiState == UIStateType.Release)
             {
                 return;
             }
 
-            ui.UIState = UIStateType.Release;
+            ui.uiState = UIStateType.Release;
 
-            if (ui.UiData.UIResType == UIResType.Bundle)
+            if (ui.uiData.uiResType == UIResType.Bundle)
             {
-                if (ui.GameObject)
+                if (ui.gameObject)
                 {
-                    UnityEngine.Object.Destroy(ui.GameObject);
+                    UnityEngine.Object.Destroy(ui.gameObject);
                 }
             }
         }

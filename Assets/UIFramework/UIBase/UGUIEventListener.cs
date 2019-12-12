@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 
@@ -14,12 +13,12 @@ public class UGUIEventListener : MonoBehaviour, IPointerClickHandler, IPointerDo
     public VoidDelegate onUp;
     public VoidDelegate onSelect;
     public VoidDelegate onUpdateSelect;
-    static Func<PointerEventData, bool> m_GuideHandle;
+    static Func<PointerEventData, bool> ms_GuideHandle;
 
     public static Func<PointerEventData, bool> guideHandle
     {
-        get { return m_GuideHandle; }
-        set { m_GuideHandle = value; }
+        get { return ms_GuideHandle; }
+        set { ms_GuideHandle = value; }
     }
 
     static public UGUIEventListener Get(GameObject go)
@@ -31,7 +30,7 @@ public class UGUIEventListener : MonoBehaviour, IPointerClickHandler, IPointerDo
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (m_GuideHandle != null && !m_GuideHandle(eventData))
+        if (ms_GuideHandle != null && !ms_GuideHandle(eventData))
             return;
 
         if (onClick != null && !eventData.dragging)

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace UIFramework
 {
@@ -16,36 +12,36 @@ namespace UIFramework
         /// <param name="uiResType">UI加载方式</param>
         public UIChildAttribute(string uiName, string parentUIName, bool loadWithParent, UIResType uiResType, bool hasAnimation)
         {
-            this.UIName = uiName;
-            this.ParentUIName = parentUIName;
-            this.LoadWithParent = loadWithParent;
-            this.UIResType = uiResType;
-            this.HasAnimation = hasAnimation;
+            this.uiName = uiName;
+            this.parentUIName = parentUIName;
+            this.loadWithParent = loadWithParent;
+            this.uiResType = uiResType;
+            this.hasAnimation = hasAnimation;
         }
 
         /// <summary>
         /// UI名字
         /// </summary>
-        public string UIName;
+        public string uiName { get; set; }
 
         /// <summary>
         /// 父窗口UI名字
         /// </summary>
-        public string ParentUIName;
+        public string parentUIName { get; set; }
 
         /// <summary>
         /// 是否和父窗口一起加载
         /// </summary>
-        public bool LoadWithParent;
+        public bool loadWithParent { get; set; }
 
         /// <summary>
         /// UI加载方式
         /// </summary>
-        public UIResType UIResType;
+        public UIResType uiResType { get; set; }
 
         /// <summary>
         /// UI是否有动画
         /// </summary>
-        public bool HasAnimation = false;
+        public bool hasAnimation { get; set; }
     }
 }

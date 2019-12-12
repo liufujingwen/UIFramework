@@ -1,28 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace UIFramework
 {
     public class UIListContainer : IUIContainer
     {
-        List<UI> uiList = new List<UI>();
+        private readonly List<UI> m_UIList = new List<UI>();
 
         public UIListContainer(UIType uiType, int minOrder)
         {
-            this.UIType = uiType;
-            this.MinOrder = minOrder;
+            this.uiType = uiType;
+            this.minOrder = minOrder;
         }
 
-        public UIType UIType;
+        public UIType uiType { get; private set; }
 
         /// <summary>
         /// 该层级最小的order，起始order
         /// </summary>
-        public int MinOrder = 0;
+        public int minOrder { get; set; }
 
         /// <summary>
         /// 每个UI之间的order间隔
@@ -31,15 +28,15 @@ namespace UIFramework
 
         public void Open(string uiName, Action<UI> callback, params object[] args)
         {
-            if (UIManager.Instance.ClosingAll)
+            if (UIManager.instance.closingAll)
                 return;
 
             UI ui = FindUI(uiName);
 
             if (ui == null)
             {
-                ui = UIManager.Instance.CreateUI(uiName);
-                uiList.Add(ui);
+                ui = UIManager.instance.CreateUI(uiName);
+                m_UIList.Add(ui);
             }
 
             if (ui == null)
@@ -50,7 +47,7 @@ namespace UIFramework
 
         public void Open(UI ui, Action<UI> callback, params object[] args)
         {
-            if (UIManager.Instance.ClosingAll)
+            if (UIManager.instance.closingAll)
                 return;
             OpenAsync(ui, callback, args);
         }
@@ -58,20 +55,20 @@ namespace UIFramework
         private async void OpenAsync(UI ui, Action<UI> callback, params object[] args)
         {
             //保证播放动画期间不能操作
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(true);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(true);
 
-            await UIManager.Instance.LoadUIAsync(ui);
+            await UIManager.instance.LoadUIAsync(ui);
 
             //先设置UI层级
-            int order = (uiList.Count - 1) * ORDER_PER_PANEL + MinOrder;
+            int order = (m_UIList.Count - 1) * ORDER_PER_PANEL + minOrder;
             ui.SetCavansOrder(order);
             //播放UI入场动画
             await ui.StartAsync(args);
 
             //释放mask
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(false);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(false);
 
             callback?.Invoke(ui);
         }
@@ -79,17 +76,17 @@ namespace UIFramework
 
         public void Pop(Action actoin = null)
         {
-            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用Pop", this.UIType);
+            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用Pop", this.uiType);
         }
 
         public void PopThenOpen(string uiName, params object[] args)
         {
-            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用PopThenOpen", this.UIType);
+            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用PopThenOpen", this.uiType);
         }
 
         public void PopAllThenOpen(string uiName, params object[] args)
         {
-            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用PopAllThenOpen", this.UIType);
+            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用PopAllThenOpen", this.uiType);
         }
 
         /// <summary>
@@ -108,18 +105,18 @@ namespace UIFramework
                 return;
 
             //保证播放动画期间不能操作
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(true);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(true);
 
             //新播放退场动画
             await ui.DestroyAsync();
-            uiList.Remove(ui);
+            m_UIList.Remove(ui);
             ui.Destroy();
-            UIManager.Instance.RealseUi(ui);
+            UIManager.instance.RealseUi(ui);
 
             //释放Mask
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(false);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(false);
 
             callback?.Invoke();
         }
@@ -131,10 +128,10 @@ namespace UIFramework
         /// <returns></returns>
         public UI FindUI(string uiName)
         {
-            for (int i = 0; i < uiList.Count; i++)
+            for (int i = 0; i < m_UIList.Count; i++)
             {
-                UI ui = uiList[i];
-                if (ui != null && ui.UiData.UiName == uiName)
+                UI ui = m_UIList[i];
+                if (ui != null && ui.uiData.uiName == uiName)
                     return ui;
             }
 
@@ -147,14 +144,14 @@ namespace UIFramework
         /// <param name="uiName">UI名字</param>
         public void Remove(string uiName)
         {
-            for (int i = 0; i < uiList.Count; i++)
+            for (int i = 0; i < m_UIList.Count; i++)
             {
-                UI ui = uiList[i];
-                if (ui != null && ui.UiData.UiName == uiName)
+                UI ui = m_UIList[i];
+                if (ui != null && ui.uiData.uiName == uiName)
                 {
-                    uiList.RemoveAt(i);
+                    m_UIList.RemoveAt(i);
                     ui.Destroy();
-                    UIManager.Instance.RealseUi(ui);
+                    UIManager.instance.RealseUi(ui);
                     break;
                 }
             }
@@ -166,14 +163,14 @@ namespace UIFramework
         /// <param name="uiName">要删除的UI</param>
         public void RemoveOne(string uiName)
         {
-            for (int i = 0; i < uiList.Count; i++)
+            for (int i = 0; i < m_UIList.Count; i++)
             {
-                UI ui = uiList[i];
-                if (ui != null && ui.UiData.UiName == uiName)
+                UI ui = m_UIList[i];
+                if (ui != null && ui.uiData.uiName == uiName)
                 {
-                    uiList.RemoveAt(i);
+                    m_UIList.RemoveAt(i);
                     ui.Destroy();
-                    UIManager.Instance.RealseUi(ui);
+                    UIManager.instance.RealseUi(ui);
                     break;
                 }
             }
@@ -184,14 +181,14 @@ namespace UIFramework
         /// </summary>
         public void Clear()
         {
-            for (int i = uiList.Count - 1; i >= 0; i--)
+            for (int i = m_UIList.Count - 1; i >= 0; i--)
             {
-                UI ui = uiList[i];
-                uiList.RemoveAt(i);
+                UI ui = m_UIList[i];
+                m_UIList.RemoveAt(i);
                 ui.Destroy();
-                UIManager.Instance.RealseUi(ui);
+                UIManager.instance.RealseUi(ui);
             }
-            uiList.Clear();
+            m_UIList.Clear();
         }
 
         /// <summary>
@@ -204,13 +201,13 @@ namespace UIFramework
             if (!parent)
                 return;
 
-            for (int i = 0; i < uiList.Count; i++)
+            for (int i = 0; i < m_UIList.Count; i++)
             {
-                UI ui = uiList[i];
-                if (ui != null && ui.Transform)
+                UI ui = m_UIList[i];
+                if (ui != null && ui.transform)
                 {
-                    if (!ui.Transform.IsChildOf(parent))
-                        ui.Transform.SetParent(parent, worldPositionStays);
+                    if (!ui.transform.IsChildOf(parent))
+                        ui.transform.SetParent(parent, worldPositionStays);
                 }
             }
         }

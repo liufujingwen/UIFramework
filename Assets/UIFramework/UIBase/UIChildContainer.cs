@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace UIFramework
@@ -12,9 +10,9 @@ namespace UIFramework
     public class UIChildContainer : IUIContainer
     {
         //保存已加载的子UI
-        private Dictionary<string, ChildUI> childDic = new Dictionary<string, ChildUI>();
+        private readonly Dictionary<string, ChildUI> m_ChildDic = new Dictionary<string, ChildUI>();
         //保存已显示的子UI
-        List<ChildUI> showList = new List<ChildUI>();
+        private readonly List<ChildUI> m_ShowList = new List<ChildUI>();
 
         public void Open(string uiName, Action<UI> callback, params object[] args)
         {
@@ -38,22 +36,22 @@ namespace UIFramework
 
             await WaitAnimationFinished();
 
-            UIManager.Instance.SetMask(true);
+            UIManager.instance.SetMask(true);
 
-            await UIManager.Instance.LoadUIAsync(childUi);
+            await UIManager.instance.LoadUIAsync(childUi);
 
-            if (!showList.Contains(childUi))
-                showList.Add(childUi);
+            if (!m_ShowList.Contains(childUi))
+                m_ShowList.Add(childUi);
 
             //设置子UI层级
-            childUi.SetCavansOrder(childUi.ParentUI.SortingOrder + 1);
+            childUi.SetCavansOrder(childUi.parentUI.sortingOrder + 1);
 
-            if (childUi.UIState == UIStateType.Awake)
+            if (childUi.uiState == UIStateType.Awake)
                 await childUi.StartAsync(args);
-            else if (childUi.UIState == UIStateType.Start || childUi.UIState == UIStateType.Disable)
+            else if (childUi.uiState == UIStateType.Start || childUi.uiState == UIStateType.Disable)
                 await childUi.EnableAsync();
 
-            UIManager.Instance.SetMask(false);
+            UIManager.instance.SetMask(false);
 
             callback?.Invoke(childUi);
         }
@@ -64,7 +62,7 @@ namespace UIFramework
                 return;
 
             ChildUI childUI = null;
-            if (!childDic.TryGetValue(uiName, out childUI))
+            if (!m_ChildDic.TryGetValue(uiName, out childUI))
                 return;
 
             CloseAsync(uiName, callback);
@@ -74,25 +72,25 @@ namespace UIFramework
         {
             await WaitAnimationFinished();
 
-            UIManager.Instance.SetMask(true);
+            UIManager.instance.SetMask(true);
 
             ChildUI childUI = null;
-            if (childDic.TryGetValue(uiName, out childUI))
+            if (m_ChildDic.TryGetValue(uiName, out childUI))
             {
                 await childUI.DisableAsync();
             }
 
-            for (int i = 0; i < showList.Count; i++)
+            for (int i = 0; i < m_ShowList.Count; i++)
             {
-                ChildUI tempChildUI = showList[i];
-                if (tempChildUI != null && tempChildUI.UiData.UiName == uiName)
+                ChildUI tempChildUI = m_ShowList[i];
+                if (tempChildUI != null && tempChildUI.uiData.uiName == uiName)
                 {
-                    showList.RemoveAt(i);
+                    m_ShowList.RemoveAt(i);
                     break;
                 }
             }
 
-            UIManager.Instance.SetMask(false);
+            UIManager.instance.SetMask(false);
 
             callback?.Invoke();
         }
@@ -101,17 +99,17 @@ namespace UIFramework
         public ChildUI FindChildUi(string childUiName)
         {
             ChildUI childUi = null;
-            childDic.TryGetValue(childUiName, out childUi);
+            m_ChildDic.TryGetValue(childUiName, out childUi);
             return childUi;
         }
 
         //该子UI是否显示
         public bool IsShow(string childUiName)
         {
-            for (int i = 0; i < showList.Count; i++)
+            for (int i = 0; i < m_ShowList.Count; i++)
             {
-                ChildUI childUi = showList[i];
-                if (childUi != null && childUi.UiData.UiName == childUiName)
+                ChildUI childUi = m_ShowList[i];
+                if (childUi != null && childUi.uiData.uiName == childUiName)
                     return true;
             }
             return false;
@@ -123,18 +121,18 @@ namespace UIFramework
         /// <param name="uiName"></param>
         public void Remove(string uiName)
         {
-            for (int i = showList.Count - 1; i >= 0; i--)
+            for (int i = m_ShowList.Count - 1; i >= 0; i--)
             {
-                ChildUI showChild = showList[i];
-                if (showChild != null && showChild.UiData.UiName == uiName)
-                    showList.RemoveAt(i);
+                ChildUI showChild = m_ShowList[i];
+                if (showChild != null && showChild.uiData.uiName == uiName)
+                    m_ShowList.RemoveAt(i);
             }
 
             ChildUI childUI = null;
-            childDic.TryGetValue(uiName, out childUI);
+            m_ChildDic.TryGetValue(uiName, out childUI);
             childUI?.Destroy();
-            UIManager.Instance.RealseUi(childUI);
-            childDic?.Remove(uiName);
+            UIManager.instance.RealseUi(childUI);
+            m_ChildDic?.Remove(uiName);
         }
 
         /// <summary>
@@ -143,35 +141,35 @@ namespace UIFramework
         /// <param name="uiName">要删除的UI</param>
         public void RemoveOne(string uiName)
         {
-            for (int i = showList.Count - 1; i >= 0; i--)
+            for (int i = m_ShowList.Count - 1; i >= 0; i--)
             {
-                ChildUI showChild = showList[i];
-                if (showChild != null && showChild.UiData.UiName == uiName)
-                    showList.RemoveAt(i);
+                ChildUI showChild = m_ShowList[i];
+                if (showChild != null && showChild.uiData.uiName == uiName)
+                    m_ShowList.RemoveAt(i);
             }
 
             ChildUI childUI = null;
-            childDic.TryGetValue(uiName, out childUI);
+            m_ChildDic.TryGetValue(uiName, out childUI);
             childUI?.Destroy();
-            UIManager.Instance.RealseUi(childUI);
-            childDic?.Remove(uiName);
+            UIManager.instance.RealseUi(childUI);
+            m_ChildDic?.Remove(uiName);
         }
 
         public void Destroy()
         {
-            showList.Clear();
-            if (childDic != null)
+            m_ShowList.Clear();
+            if (m_ChildDic != null)
             {
-                foreach (var kv in childDic)
+                foreach (var kv in m_ChildDic)
                 {
                     ChildUI childUi = kv.Value;
                     if (childUi != null)
                     {
                         childUi.Destroy();
-                        UIManager.Instance.RealseUi(childUi);
+                        UIManager.instance.RealseUi(childUi);
                     }
                 }
-                childDic.Clear();
+                m_ChildDic.Clear();
             }
         }
 
@@ -186,11 +184,11 @@ namespace UIFramework
         /// </summary>
         public void TryAwake()
         {
-            if (childDic != null)
+            if (m_ChildDic != null)
             {
-                foreach (var kv in childDic)
+                foreach (var kv in m_ChildDic)
                 {
-                    if (kv.Value.UiData.LoadWithParent && !kv.Value.AwakeState)
+                    if (kv.Value.uiData.loadWithParent && !kv.Value.awakeState)
                         kv.Value.Awake();
                 }
             }
@@ -206,18 +204,15 @@ namespace UIFramework
             if (string.IsNullOrEmpty(uiName) || childUI == null)
                 return;
 
-            if (childDic == null)
-                childDic = new Dictionary<string, ChildUI>();
-
-            childDic.Add(uiName, childUI);
+            m_ChildDic.Add(uiName, childUI);
         }
 
         public async Task WaitAnimationFinished()
         {
             //等待子UI动画播放完成
-            if (childDic != null)
+            if (m_ChildDic != null)
             {
-                foreach (var kv in childDic)
+                foreach (var kv in m_ChildDic)
                     await kv.Value.WaitAnimationFinished();
             }
         }
@@ -225,9 +220,9 @@ namespace UIFramework
         public void PlayEnableAnimation()
         {
             //父UI执行Enable之前，需要把显示列表的UI执行Enable
-            for (int i = 0; i < showList.Count; i++)
+            for (int i = 0; i < m_ShowList.Count; i++)
             {
-                ChildUI childUI = showList[i];
+                ChildUI childUI = m_ShowList[i];
                 if (childUI != null)
                     childUI.EnableAsync().ConfigureAwait(true);
             }
@@ -236,9 +231,9 @@ namespace UIFramework
         public void PlayDisableAnimation()
         {
             //父UI执行Disable之前，有动画的子UI需要播放退场动画
-            for (int i = 0; i < showList.Count; i++)
+            for (int i = 0; i < m_ShowList.Count; i++)
             {
-                ChildUI childUI = showList[i];
+                ChildUI childUI = m_ShowList[i];
                 if (childUI != null)
                     childUI.DisableAsync().ConfigureAwait(true);
             }
@@ -246,9 +241,9 @@ namespace UIFramework
 
         public void PlayDestroyAnimation()
         {
-            for (int i = 0; i < showList.Count; i++)
+            for (int i = 0; i < m_ShowList.Count; i++)
             {
-                ChildUI childUI = showList[i];
+                ChildUI childUI = m_ShowList[i];
                 if (childUI != null)
                     childUI.DestroyAsync().ConfigureAwait(true);
             }
@@ -267,17 +262,17 @@ namespace UIFramework
 
             await WaitAnimationFinished();
 
-            UIManager.Instance.SetMask(true);
+            UIManager.instance.SetMask(true);
 
-            await UIManager.Instance.LoadUIAsync(childUi);
+            await UIManager.instance.LoadUIAsync(childUi);
 
             //要打开的窗口是否已经显示
             bool showFlag = false;
-            for (int i = showList.Count - 1; i >= 0; i--)
+            for (int i = m_ShowList.Count - 1; i >= 0; i--)
             {
-                ChildUI tempChildUi = showList[i];
-                if (tempChildUi.UiData.UiName != childUi.UiData.UiName)
-                    Close(tempChildUi.UiData.UiName, null);
+                ChildUI tempChildUi = m_ShowList[i];
+                if (tempChildUi.uiData.uiName != childUi.uiData.uiName)
+                    Close(tempChildUi.uiData.uiName, null);
                 else
                     showFlag = true;
             }
@@ -287,7 +282,7 @@ namespace UIFramework
             if (!showFlag)
                 OpenAsync(childUi, null, args);
 
-            UIManager.Instance.SetMask(false);
+            UIManager.instance.SetMask(false);
         }
 
         public void Pop(Action callback)

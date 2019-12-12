@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UIFramework;
+﻿using UIFramework;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -19,14 +14,14 @@ public class DialogUI : UIMonoProxy
 
     void OnClickCancelBtn(PointerEventData eventData)
     {
-        UIManager.Instance.Close("DialogUI");
-        UIManager.Instance.Remove("MainMenuUI");
+        UIManager.instance.Close("DialogUI");
+        UIManager.instance.Remove("MainMenuUI");
     }
 
     void OnClickOkBtn(PointerEventData eventData)
     {
-        UIManager.Instance.Close("DialogUI");
-        UIManager.Instance.Open("MainMenuUI");
+        UIManager.instance.Close("DialogUI");
+        UIManager.instance.Open("MainMenuUI");
     }
 
     public override void OnStart(params object[] args)

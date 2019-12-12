@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UIFramework;
+﻿using UIFramework;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-[UIAttribute("ParentUI", UIType.Normal, UIResType.Resorces, false)]
+[UI("ParentUI", UIType.Normal, UIResType.Resorces, false)]
 public class ParentUI : UIMonoProxy
 {
     public override void OnAwake()
@@ -22,12 +17,12 @@ public class ParentUI : UIMonoProxy
 
     void OnClickExitBtn(PointerEventData eventData)
     {
-        UIManager.Instance.Pop();
+        UIManager.instance.Pop();
     }
 
     void OnClickExitOptionMenu(PointerEventData eventData)
     {
-        UIManager.Instance.Open("OptionMenuUI");
+        UIManager.instance.Open("OptionMenuUI");
     }
 
     void OnClickTab1(PointerEventData eventData)

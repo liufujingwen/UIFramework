@@ -2,7 +2,7 @@ LuaUIManager = Class("LuaUIManager")
 
 require("Manager/LuaUI")
 
-local ClassType = {}
+local classType = {}
 
 --注册UI
 -- @super 父类
@@ -17,9 +17,9 @@ function LuaUIManager.Register(super, uiName, uiType, uiResType, uiCloseType, ha
     print(tostring(super) .. "  " .. uiName .. "  " .. tostring(uiType) .. "  " .. tostring(uiResType) .. "  " .. tostring(uiCloseType))
 
     super = LuaUI or super
-    UIManager.Instance:Register(uiName, uiType, uiResType, uiCloseType, hasAnimation, true)
+    UIManager.instance:Register(uiName, uiType, uiResType, uiCloseType, hasAnimation, true)
     local uiObject = Class(uiName, super)
-    ClassType[uiName] = uiObject
+    classType[uiName] = uiObject
     return uiObject
 
 end
@@ -30,10 +30,10 @@ end
 function LuaUIManager.New(uiName, uiProxy)
 
     local baseName = uiName
-    local class = ClassType[baseName]
+    local class = classType[baseName]
     if not class then
         baseName = string.match(baseName, '%w*[^(%d)$*]')       -- 解析包含数字后缀的界面
-        class = ClassType[baseName]
+        class = classType[baseName]
         if not class then
             XLog.Error("LuaUIManager.New error, class not exist, name: " .. uiName)
             return nil
@@ -49,12 +49,12 @@ end
 --打开UI
 --@uiName 打开的UI名字
 function LuaUIManager.Open(uiName, ...)
-    CsXUiManager.Instance:Open(uiName,...)
+    CsXUiManager.instance:Open(uiName,...)
 end
 
 
 --关闭UI
 --@uiName 关闭的UI名字
 function LuaUIManager.Close(uiName)
-    CsXUiManager.Instance:Close(uiName)
+    CsXUiManager.instance:Close(uiName)
 end

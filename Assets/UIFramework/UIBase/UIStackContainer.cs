@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System;
 
 namespace UIFramework
@@ -12,29 +10,29 @@ namespace UIFramework
     public class UIStackContainer : IUIContainer
     {
         //避免push过快
-        bool pushing = false;
+        private bool m_Pushing = false;
         //避免pop过快
-        bool poping = false;
+        private bool m_Poping = false;
         //正在关闭全部（避免在关闭过程中有些UI写了打开某个ui在disable、destroy里面）
-        bool closingAll = false;
+        private bool m_ClosingAll = false;
         //临时记录连续状态为ShowHistory的ui
-        private static List<UI> TempList = new List<UI>();
+        private static List<UI> ms_TempList = new List<UI>();
 
         public UIStackContainer(UIType uiType, int minOrder)
         {
-            this.UIType = uiType;
-            this.MinOrder = minOrder;
+            this.uiType = uiType;
+            this.minOrder = minOrder;
         }
 
-        public UIType UIType;
+        public UIType uiType { get; set; }
 
         //保存当前入栈的UI
-        private CustomStack<UI> showStack = new CustomStack<UI>();
+        private readonly CustomStack<UI> m_ShowStack = new CustomStack<UI>();
 
         /// <summary>
         /// 该UI显示栈最小的order，起始order
         /// </summary>
-        public int MinOrder = 0;
+        public int minOrder { get; set; }
 
         /// <summary>
         /// 每个UI之间的order间隔
@@ -43,15 +41,15 @@ namespace UIFramework
 
         public UI Peek()
         {
-            return showStack.Peek();
+            return m_ShowStack.Peek();
         }
 
         public void Open(string uiName, Action<UI> callback, params object[] args)
         {
-            if (UIManager.Instance.ClosingAll)
+            if (UIManager.instance.closingAll)
                 return;
 
-            UI ui = UIManager.Instance.CreateUI(uiName);
+            UI ui = UIManager.instance.CreateUI(uiName);
             if (ui == null)
                 return;
 
@@ -60,7 +58,7 @@ namespace UIFramework
 
         public void Open(UI ui, Action<UI> callback, params object[] args)
         {
-            if (UIManager.Instance.ClosingAll)
+            if (UIManager.instance.closingAll)
                 return;
 
             OpenAsync(ui, callback, args);
@@ -68,39 +66,39 @@ namespace UIFramework
 
         private async void OpenAsync(UI ui, Action<UI> callback, params object[] args)
         {
-            if (UIManager.Instance.ClosingAll)
+            if (UIManager.instance.closingAll)
                 return;
 
-            if (closingAll)
+            if (m_ClosingAll)
                 return;
 
-            if (pushing || poping)
+            if (m_Pushing || m_Poping)
                 return;
 
-            pushing = true;
+            m_Pushing = true;
 
             //保证播放动画期间不能操作
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(true);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(true);
 
             //等待UI加载
-            await UIManager.Instance.LoadUIAsync(ui);
+            await UIManager.instance.LoadUIAsync(ui);
 
             //播放UI推场动画
-            if (ui.UiData.UiType == UIType.NormalPopup)
+            if (ui.uiData.uiType == UIType.NormalPopup)
             {
-                UI curUi = showStack.Peek();
+                UI curUi = m_ShowStack.Peek();
             }
             else
             {
                 //播放UI退场动画
-                if (showStack.Count != 0)
+                if (m_ShowStack.Count != 0)
                 {
-                    List<UI> uiList = showStack.GetList();
+                    List<UI> uiList = m_ShowStack.GetList();
                     for (int i = uiList.Count - 1; i >= 0; i--)
                     {
                         UI tempUi = uiList[i];
-                        if (tempUi != null && tempUi.UIState == UIStateType.Enable)
+                        if (tempUi != null && tempUi.uiState == UIStateType.Enable)
                         {
                             await tempUi?.DisableAsync();
                         }
@@ -108,26 +106,26 @@ namespace UIFramework
                 }
             }
 
-            showStack.Push(ui);
+            m_ShowStack.Push(ui);
             //先设置UI层级
-            int order = (showStack.Count - 1) * ORDER_PER_PANEL + MinOrder;
+            int order = (m_ShowStack.Count - 1) * ORDER_PER_PANEL + minOrder;
             ui.SetCavansOrder(order);
 
             //播放UI入场动画
             await ui.StartAsync(args);
 
             //释放mask
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(false);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(false);
 
-            pushing = false;
+            m_Pushing = false;
 
             callback?.Invoke(ui);
         }
 
         public void Close(string uiName, Action callback)
         {
-            UnityEngine.Debug.LogErrorFormat("UIType:{0}不能使用Close", this.UIType);
+            Debug.LogErrorFormat("UIType:{0}不能使用Close", this.uiType);
         }
 
         public void Pop(Action callback)
@@ -137,37 +135,37 @@ namespace UIFramework
 
         private async void PopAsync(Action callback)
         {
-            if (poping || pushing)
+            if (m_Poping || m_Pushing)
                 return;
 
-            poping = true;
+            m_Poping = true;
 
             //保证播放动画期间不能操作
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(true);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(true);
 
             //最上层UI退栈
-            if (showStack.Count != 0)
+            if (m_ShowStack.Count != 0)
             {
                 //先peek,如果pop了就没有动画通知
-                UI curUi = showStack.Peek();
+                UI curUi = m_ShowStack.Peek();
                 await curUi.DestroyAsync();
-                showStack.Pop();
+                m_ShowStack.Pop();
                 curUi.Destroy();
-                UIManager.Instance.RealseUi(curUi);
+                UIManager.instance.RealseUi(curUi);
             }
 
-            poping = false;
+            m_Poping = false;
 
             //显示前一个界面
-            if (showStack.Count != 0)
+            if (m_ShowStack.Count != 0)
             {
-                List<UI> uiList = showStack.GetList();
-                UI preUi = showStack.Peek();
-                if (preUi != null && preUi.UiData.UiType == UIType.NormalPopup && preUi.UIState == UIStateType.Disable)
+                List<UI> uiList = m_ShowStack.GetList();
+                UI preUi = m_ShowStack.Peek();
+                if (preUi != null && preUi.uiData.uiType == UIType.NormalPopup && preUi.uiState == UIStateType.Disable)
                 {
-                    TempList.Clear();
-                
+                    ms_TempList.Clear();
+
                     for (int i = uiList.Count - 2; i >= 0; i--)
                     {
                         UI tempUi = uiList[i];
@@ -176,18 +174,18 @@ namespace UIFramework
                             break;
                         }
 
-                        TempList.Add(tempUi);
+                        ms_TempList.Add(tempUi);
 
-                        if (tempUi.UiData.UiType != UIType.NormalPopup)
+                        if (tempUi.uiData.uiType != UIType.NormalPopup)
                         {
                             break;
                         }
                     }
 
                     //直接显示连续为ShowHistory的ui
-                    for (int i = TempList.Count - 1; i >= 0; i--)
+                    for (int i = ms_TempList.Count - 1; i >= 0; i--)
                     {
-                        UI tempUi = TempList[i];
+                        UI tempUi = ms_TempList[i];
                         tempUi?.Enable();
                     }
                 }
@@ -198,8 +196,8 @@ namespace UIFramework
             }
 
             //释放Mask
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(false);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(false);
 
             callback?.Invoke();
         }
@@ -221,49 +219,49 @@ namespace UIFramework
         /// <param name="args">传递到0nStart的参数</param>
         private async void PopThenOpenAsync(string uiName, params object[] args)
         {
-            if (UIManager.Instance.ClosingAll)
+            if (UIManager.instance.closingAll)
                 return;
 
-            if (closingAll)
+            if (m_ClosingAll)
                 return;
 
-            if (pushing || poping)
+            if (m_Pushing || m_Poping)
                 return;
 
-            poping = true;
+            m_Poping = true;
 
-            UI newUi = UIManager.Instance.CreateUI(uiName);
+            UI newUi = UIManager.instance.CreateUI(uiName);
             if (newUi == null)
             {
-                poping = false;
+                m_Poping = false;
                 return;
             }
 
             //保证播放动画期间不能操作
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(true);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(true);
 
             //等待加载新UI
-            await UIManager.Instance.LoadUIAsync(newUi);
+            await UIManager.instance.LoadUIAsync(newUi);
 
             //最上层UI退栈
-            if (showStack.Count != 0)
+            if (m_ShowStack.Count != 0)
             {
                 //先peek,如果pop了就没有动画通知
-                UI currentUi = showStack.Peek();
+                UI currentUi = m_ShowStack.Peek();
                 await currentUi.DestroyAsync();
-                showStack.Pop();
+                m_ShowStack.Pop();
                 currentUi.Destroy();
-                UIManager.Instance.RealseUi(currentUi);
+                UIManager.instance.RealseUi(currentUi);
             }
 
-            poping = false;
+            m_Poping = false;
 
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(false);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(false);
 
             //打开新的UI
-            UIManager.Instance.Open(newUi, args);
+            UIManager.instance.Open(newUi, args);
         }
 
         /// <summary>
@@ -283,49 +281,49 @@ namespace UIFramework
         /// <param name="args">传递到0nStart的参数</param>
         private async void PopAllThenOpenAsync(string uiName, params object[] args)
         {
-            if (UIManager.Instance.ClosingAll)
+            if (UIManager.instance.closingAll)
                 return;
 
-            if (closingAll)
+            if (m_ClosingAll)
                 return;
 
-            if (pushing || poping)
+            if (m_Pushing || m_Poping)
                 return;
 
-            poping = true;
+            m_Poping = true;
 
-            UI newUi = UIManager.Instance.CreateUI(uiName);
+            UI newUi = UIManager.instance.CreateUI(uiName);
             if (newUi == null)
             {
-                poping = false;
+                m_Poping = false;
                 return;
             }
 
             //保证播放动画期间不能操作
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(true);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(true);
 
             //先加载新UI
-            await UIManager.Instance.LoadUIAsync(newUi);
+            await UIManager.instance.LoadUIAsync(newUi);
 
             //最上层UI退栈
-            while (showStack.Count != 0)
+            while (m_ShowStack.Count != 0)
             {
                 //先peek,如果pop了就没有动画通知
-                UI curUi = showStack.Peek();
+                UI curUi = m_ShowStack.Peek();
                 await curUi.DestroyAsync();
-                showStack.Pop();
+                m_ShowStack.Pop();
                 curUi.Destroy();
-                UIManager.Instance.RealseUi(curUi);
+                UIManager.instance.RealseUi(curUi);
             }
 
-            poping = false;
+            m_Poping = false;
 
-            if ((this.UIType & UIManager.IgnoreMaskType) == 0)
-                UIManager.Instance.SetMask(false);
+            if ((this.uiType & UIManager.IGNORE_MASK_TYPE) == 0)
+                UIManager.instance.SetMask(false);
 
             //打开新UI
-            UIManager.Instance.Open(newUi, args);
+            UIManager.instance.Open(newUi, args);
         }
 
         /// <summary>
@@ -334,15 +332,15 @@ namespace UIFramework
         /// <param name="uiName">UI名字</param>
         public void Remove(string uiName)
         {
-            List<UI> uiList = showStack.GetList();
+            List<UI> uiList = m_ShowStack.GetList();
             for (int i = uiList.Count - 1; i >= 0; i--)
             {
                 UI ui = uiList[i];
-                if (ui.UiData.UiName == uiName)
+                if (ui.uiData.uiName == uiName)
                 {
                     uiList.RemoveAt(i);
                     ui.Destroy();
-                    UIManager.Instance.RealseUi(ui);
+                    UIManager.instance.RealseUi(ui);
                 }
             }
         }
@@ -354,15 +352,15 @@ namespace UIFramework
         /// <param name="uiName">要删除的UI</param>
         public void RemoveOne(string uiName)
         {
-            List<UI> uiList = showStack.GetList();
+            List<UI> uiList = m_ShowStack.GetList();
             for (int i = uiList.Count - 1; i >= 0; i--)
             {
                 UI ui = uiList[i];
-                if (ui.UiData.UiName == uiName)
+                if (ui.uiData.uiName == uiName)
                 {
                     uiList.RemoveAt(i);
                     ui.Destroy();
-                    UIManager.Instance.RealseUi(ui);
+                    UIManager.instance.RealseUi(ui);
                     break;
                 }
             }
@@ -371,9 +369,9 @@ namespace UIFramework
         //清除所有UI
         public void Clear()
         {
-            closingAll = true;
+            m_ClosingAll = true;
 
-            List<UI> uiList = showStack.GetList();
+            List<UI> uiList = m_ShowStack.GetList();
             if (uiList.Count > 0)
             {
                 for (int i = uiList.Count - 1; i >= 0; i--)
@@ -381,15 +379,15 @@ namespace UIFramework
                     UI ui = uiList[i];
                     uiList.RemoveAt(i);
                     ui.Destroy();
-                    UIManager.Instance.RealseUi(ui);
+                    UIManager.instance.RealseUi(ui);
                 }
             }
 
-            closingAll = false;
+            m_ClosingAll = false;
 
-            showStack.Clear();
-            pushing = false;
-            poping = false;
+            m_ShowStack.Clear();
+            m_Pushing = false;
+            m_Poping = false;
         }
 
         /// <summary>
@@ -402,14 +400,14 @@ namespace UIFramework
             if (!parent)
                 return;
 
-            List<UI> uiList = showStack.GetList();
+            List<UI> uiList = m_ShowStack.GetList();
             for (int i = 0; i < uiList.Count; i++)
             {
                 UI ui = uiList[i];
-                if (ui != null && ui.Transform)
+                if (ui != null && ui.transform)
                 {
-                    if (!ui.Transform.IsChildOf(parent))
-                        ui.Transform.SetParent(parent, worldPositionStays);
+                    if (!ui.transform.IsChildOf(parent))
+                        ui.transform.SetParent(parent, worldPositionStays);
                 }
             }
         }

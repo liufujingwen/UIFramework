@@ -1,9 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
 using UIFramework;
 using UnityEngine.EventSystems;
 
@@ -18,7 +13,7 @@ public class HighScoreUI : UIMonoProxy
 
     void OnClickExitBtn(PointerEventData eventData)
     {
-        UIManager.Instance.Pop();
+        UIManager.instance.Pop();
     }
 
     public override void OnStart(params object[] args)

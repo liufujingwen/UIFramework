@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace UIFramework
 {
@@ -11,25 +7,25 @@ namespace UIFramework
         /// <summary>
         /// UI数据
         /// </summary>
-        public UIData UIData = null;
+        public UIData uiData { get; set; }
 
         /// <summary>
         /// UI资源加载状态
         /// </summary>
-        public TaskCompletionSource<bool> TCS = null;
+        public TaskCompletionSource<bool> tcs = null;
 
         /// <summary>
         /// UI
         /// </summary>
-        public UI UI = null;
+        public UI ui = null;
 
         /// <summary>
         /// 销毁UI
         /// </summary>
         public void Destroy()
         {
-            this.TCS = null;
-            this.UI?.Destroy();
+            tcs = null;
+            ui?.Destroy();
         }
 
     }

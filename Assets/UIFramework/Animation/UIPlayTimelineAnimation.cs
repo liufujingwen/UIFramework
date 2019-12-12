@@ -6,14 +6,14 @@ using UnityEngine.Playables;
 [RequireComponent(typeof(PlayableDirector))]
 public class UIPlayTimelineAnimation : MonoBehaviour
 {
-    public string AnimName;
-    private PlayableDirector Director;
-    private bool IsPlaying;
-    private Action FinishedCallback;//动画播放完成回调
-    private float ElapsedTime;//动画经过的时间
-    private float Length;//动画时长
-    private static readonly Dictionary<int, UIPlayTimelineAnimation> TimelineAnimAnimDic = new Dictionary<int, UIPlayTimelineAnimation>();
-    private int WaitFrame = 0;
+    public string animName;
+    private PlayableDirector m_Director;
+    private bool m_IsPlaying;
+    private Action m_FinishedCallback;//动画播放完成回调
+    private float m_ElapsedTime;//动画经过的时间
+    private float m_Length;//动画时长
+    private static readonly Dictionary<int, UIPlayTimelineAnimation> m_TimelineAnimAnimDic = new Dictionary<int, UIPlayTimelineAnimation>();
+    private int m_WaitFrame = 0;
 
     private void OnDisable()
     {
@@ -22,27 +22,27 @@ public class UIPlayTimelineAnimation : MonoBehaviour
 
     private void Update()
     {
-        if (!IsPlaying)
+        if (!m_IsPlaying)
         {
             return;
         }
 
-        if (Director.state != PlayState.Playing)
+        if (m_Director.state != PlayState.Playing)
         {
             return;
         }
 
-        if (WaitFrame > 0)
+        if (m_WaitFrame > 0)
         {
-            Director.time = ElapsedTime;
-            WaitFrame--;
+            m_Director.time = m_ElapsedTime;
+            m_WaitFrame--;
             return;
         }
 
-        ElapsedTime += Time.deltaTime;
-        Director.time = ElapsedTime;
+        m_ElapsedTime += Time.deltaTime;
+        m_Director.time = m_ElapsedTime;
 
-        if (ElapsedTime >= Length)
+        if (m_ElapsedTime >= m_Length)
         {
             OnFinished();
         }
@@ -51,28 +51,28 @@ public class UIPlayTimelineAnimation : MonoBehaviour
     //动画播放完成
     private void OnFinished()
     {
-        IsPlaying = false;
-        Director.time = Length;
-        Director.Evaluate();
-        ElapsedTime = 0;
-        Action tempHandle = FinishedCallback;
-        FinishedCallback = null;
+        m_IsPlaying = false;
+        m_Director.time = m_Length;
+        m_Director.Evaluate();
+        m_ElapsedTime = 0;
+        Action tempHandle = m_FinishedCallback;
+        m_FinishedCallback = null;
         tempHandle?.Invoke();
     }
 
     //播放动画
     public void Play(string animName, Action finishedCallback)
     {
-        if (IsPlaying)
+        if (m_IsPlaying)
         {
-            Debug.LogWarning($"上一个动画:{AnimName}还没有播放完成，然后就直接播放:{animName}");
+            Debug.LogWarning($"上一个动画:{this.animName}还没有播放完成，然后就直接播放:{animName}");
         }
 
         //先停止
         Stop();
 
-        AnimName = animName;
-        FinishedCallback = finishedCallback;
+        this.animName = animName;
+        m_FinishedCallback = finishedCallback;
 
         if (!gameObject.activeInHierarchy)
         {
@@ -80,50 +80,50 @@ public class UIPlayTimelineAnimation : MonoBehaviour
             return;
         }
 
-        if (Director == null)
+        if (m_Director == null)
         {
-            Director = gameObject.GetComponent<PlayableDirector>();
-            Director.playOnAwake = false;
-            Director.extrapolationMode = DirectorWrapMode.Hold;
+            m_Director = gameObject.GetComponent<PlayableDirector>();
+            m_Director.playOnAwake = false;
+            m_Director.extrapolationMode = DirectorWrapMode.Hold;
         }
 
-        if (!Director)
+        if (!m_Director)
         {
             Debug.LogError($"UIPlayTimelineAnimation.Play Error:[{gameObject.name}:不存在Animation组件]");
             return;
         }
 
-        IsPlaying = true;
-        Length = (float)Director.duration;
-        Director.Play();
-        WaitFrame = 2;
+        m_IsPlaying = true;
+        m_Length = (float)m_Director.duration;
+        m_Director.Play();
+        m_WaitFrame = 2;
     }
 
     //停止播放动画
     public void Stop(bool evaluate = true)
     {
-        if (FinishedCallback != null)
+        if (m_FinishedCallback != null)
         {
-            Action tempCallback = FinishedCallback;
-            FinishedCallback = null;
+            Action tempCallback = m_FinishedCallback;
+            m_FinishedCallback = null;
             tempCallback.Invoke();
         }
 
-        ElapsedTime = 0;
-        IsPlaying = false;
-        Director?.Stop();
+        m_ElapsedTime = 0;
+        m_IsPlaying = false;
+        m_Director?.Stop();
 
         if (evaluate)
         {
-            Director?.Evaluate();
+            m_Director?.Evaluate();
         }
     }
 
     private void OnDestroy()
     {
-        if (TimelineAnimAnimDic.ContainsKey(gameObject.GetHashCode()))
+        if (m_TimelineAnimAnimDic.ContainsKey(gameObject.GetHashCode()))
         {
-            TimelineAnimAnimDic.Remove(gameObject.GetHashCode());
+            m_TimelineAnimAnimDic.Remove(gameObject.GetHashCode());
         }
     }
 
@@ -149,10 +149,10 @@ public class UIPlayTimelineAnimation : MonoBehaviour
         }
 
         UIPlayTimelineAnimation playTimelineAnimation = null;
-        if (!TimelineAnimAnimDic.TryGetValue(gameObject.GetHashCode(), out playTimelineAnimation))
+        if (!m_TimelineAnimAnimDic.TryGetValue(gameObject.GetHashCode(), out playTimelineAnimation))
         {
             playTimelineAnimation = gameObject.AddComponent<UIPlayTimelineAnimation>();
-            TimelineAnimAnimDic.Add(gameObject.GetHashCode(), playTimelineAnimation);
+            m_TimelineAnimAnimDic.Add(gameObject.GetHashCode(), playTimelineAnimation);
         }
 
         if (!playTimelineAnimation)

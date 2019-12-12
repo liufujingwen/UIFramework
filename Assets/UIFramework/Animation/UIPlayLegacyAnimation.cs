@@ -4,17 +4,17 @@ using UnityEngine;
 
 public class UIPlayLegacyAnimation : MonoBehaviour
 {
-    public string AnimName;
-    public Animation Animation;
-    private bool IsPlaying;
-    private Action FinishedCallback;//动画播放完成回调
-    private float ElapsedTime;//动画经过的时间
-    private float Length;//动画时长
-    private AnimationState AnimationState;
-    private static readonly Dictionary<int, UIPlayLegacyAnimation> LegacyAnimDic = new Dictionary<int, UIPlayLegacyAnimation>();
-    private bool CheckPlayState = false;
-    private float Speed = 0;
-    private int WaitFrame = 0;
+    public string animName;
+    public Animation anim;
+    private bool m_IsPlaying;
+    private Action m_FinishedCallback;//动画播放完成回调
+    private float m_ElapsedTime;//动画经过的时间
+    private float m_Length;//动画时长
+    private AnimationState m_AnimationState;
+    private static readonly Dictionary<int, UIPlayLegacyAnimation> m_LegacyAnimDic = new Dictionary<int, UIPlayLegacyAnimation>();
+    private bool m_CheckPlayState = false;
+    private float m_Speed = 0;
+    private int m_WaitFrame = 0;
 
     private void OnDisable()
     {
@@ -23,30 +23,30 @@ public class UIPlayLegacyAnimation : MonoBehaviour
 
     private void Update()
     {
-        if (!IsPlaying)
+        if (!m_IsPlaying)
         {
             return;
         }
 
-        if (!Animation)
+        if (!anim)
         {
             return;
         }
 
-        if (WaitFrame > 0)
+        if (m_WaitFrame > 0)
         {
-            WaitFrame--;
+            m_WaitFrame--;
             return;
         }
 
-        if (CheckPlayState)
+        if (m_CheckPlayState)
         {
-            CheckPlayState = false;
-            AnimationState.speed = Speed;
+            m_CheckPlayState = false;
+            m_AnimationState.speed = m_Speed;
         }
 
-        ElapsedTime += Time.deltaTime;
-        if (!Animation.isPlaying && ElapsedTime >= Length)
+        m_ElapsedTime += Time.deltaTime;
+        if (!anim.isPlaying && m_ElapsedTime >= m_Length)
         {
             OnFinished();
         }
@@ -55,28 +55,28 @@ public class UIPlayLegacyAnimation : MonoBehaviour
     //动画播放完成
     private void OnFinished()
     {
-        IsPlaying = false;
-        ElapsedTime = 0;
+        m_IsPlaying = false;
+        m_ElapsedTime = 0;
         //保证动画最后一帧执行
-        AnimationState.normalizedTime = 1;
-        Animation.Play(AnimName);
-        Action tempHandle = FinishedCallback;
-        FinishedCallback = null;
+        m_AnimationState.normalizedTime = 1;
+        anim.Play(animName);
+        Action tempHandle = m_FinishedCallback;
+        m_FinishedCallback = null;
         tempHandle?.Invoke();
     }
 
     public void Play(string animName, Action finishedCallback)
     {
-        if (IsPlaying)
+        if (m_IsPlaying)
         {
-            Debug.LogWarning($"上一个动画:{AnimName}还没有播放完成，然后就直接播放:{animName}");
+            Debug.LogWarning($"上一个动画:{this.animName}还没有播放完成，然后就直接播放:{animName}");
         }
 
         //先停止
         Stop();
 
-        AnimName = animName;
-        FinishedCallback = finishedCallback;
+        this.animName = animName;
+        m_FinishedCallback = finishedCallback;
 
         if (!gameObject.activeInHierarchy)
         {
@@ -84,63 +84,63 @@ public class UIPlayLegacyAnimation : MonoBehaviour
             return;
         }
 
-        if (Animation == null)
+        if (anim == null)
         {
-            Animation = gameObject.GetComponent<Animation>();
+            anim = gameObject.GetComponent<Animation>();
         }
 
-        if (!Animation)
+        if (!anim)
         {
             Debug.LogError($"UIPlayLegacyAnimation.Play Error:[{gameObject.name}:没有Animation组件]");
             return;
         }
 
-        AnimationClip clip = Animation.GetClip(animName);
+        AnimationClip clip = anim.GetClip(animName);
         if (!clip)
         {
             Debug.LogError($"UIPlayLegacyAnimation.Play Error:[{gameObject.name}:不存在Clip:{animName}]");
             return;
         }
 
-        IsPlaying = true;
-        ElapsedTime = 0;
-        Length = clip.length;
-        Animation.Play(animName);
-        AnimationState = Animation[animName];
-        Speed = AnimationState.speed;
-        Speed = Speed == 0 ? 1 : Speed;
-        AnimationState.speed = 0;
-        CheckPlayState = true;
-        WaitFrame = 2;
+        m_IsPlaying = true;
+        m_ElapsedTime = 0;
+        m_Length = clip.length;
+        anim.Play(animName);
+        m_AnimationState = anim[animName];
+        m_Speed = m_AnimationState.speed;
+        m_Speed = m_Speed == 0 ? 1 : m_Speed;
+        m_AnimationState.speed = 0;
+        m_CheckPlayState = true;
+        m_WaitFrame = 2;
     }
 
     //停止播放动画
     public void Stop()
     {
-        if (FinishedCallback != null)
+        if (m_FinishedCallback != null)
         {
-            Action tempCallback = FinishedCallback;
-            FinishedCallback = null;
+            Action tempCallback = m_FinishedCallback;
+            m_FinishedCallback = null;
             tempCallback.Invoke();
         }
 
-        ElapsedTime = 0;
-        IsPlaying = false;
-        if (AnimationState)
+        m_ElapsedTime = 0;
+        m_IsPlaying = false;
+        if (m_AnimationState)
         {
-            Speed = Speed == 0 ? 1 : Speed;
-            AnimationState.speed = Speed;
+            m_Speed = m_Speed == 0 ? 1 : m_Speed;
+            m_AnimationState.speed = m_Speed;
         }
-        Animation?.Stop();
-        CheckPlayState = false;
-        WaitFrame = 0;
+        anim?.Stop();
+        m_CheckPlayState = false;
+        m_WaitFrame = 0;
     }
 
     private void OnDestroy()
     {
-        if (LegacyAnimDic.ContainsKey(gameObject.GetHashCode()))
+        if (m_LegacyAnimDic.ContainsKey(gameObject.GetHashCode()))
         {
-            LegacyAnimDic.Remove(gameObject.GetHashCode());
+            m_LegacyAnimDic.Remove(gameObject.GetHashCode());
         }
     }
 
@@ -166,10 +166,10 @@ public class UIPlayLegacyAnimation : MonoBehaviour
         }
 
         UIPlayLegacyAnimation playLegacyAnim = null;
-        if (!LegacyAnimDic.TryGetValue(gameObject.GetHashCode(), out playLegacyAnim))
+        if (!m_LegacyAnimDic.TryGetValue(gameObject.GetHashCode(), out playLegacyAnim))
         {
             playLegacyAnim = gameObject.AddComponent<UIPlayLegacyAnimation>();
-            LegacyAnimDic.Add(gameObject.GetHashCode(), playLegacyAnim);
+            m_LegacyAnimDic.Add(gameObject.GetHashCode(), playLegacyAnim);
         }
 
         if (!playLegacyAnim)

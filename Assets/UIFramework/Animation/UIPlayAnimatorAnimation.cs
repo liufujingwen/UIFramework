@@ -7,20 +7,20 @@ using UnityEngine.Playables;
 [RequireComponent(typeof(Animator))]
 public class UIPlayAnimatorAnimation : MonoBehaviour
 {
-    public string AnimName;
-    public AnimationClip[] Clips;
-    private Animator Animator;
-    private bool IsPlaying;
-    private Action FinishedCallback;//动画播放完成回调
-    private float ElapsedTime;//动画经过的时间
-    private float Length;//动画时长
+    public string animName;
+    public AnimationClip[] clips;
+    private Animator m_Animator;
+    private bool m_IsPlaying;
+    private Action m_FinishedCallback;//动画播放完成回调
+    private float m_ElapsedTime;//动画经过的时间
+    private float m_Length;//动画时长
 
-    private PlayableGraph PlayableGraph;
-    private AnimationPlayableOutput AnimationPlayableOutput;
-    private AnimationClipPlayable CurrentPlayable;
+    private PlayableGraph m_PlayableGraph;
+    private AnimationPlayableOutput m_AnimationPlayableOutput;
+    private AnimationClipPlayable m_CurrentPlayable;
 
-    private readonly Dictionary<string, AnimationClipPlayable> PlayableDic = new Dictionary<string, AnimationClipPlayable>();
-    private static readonly Dictionary<int, UIPlayAnimatorAnimation> AnimatorAnimDic = new Dictionary<int, UIPlayAnimatorAnimation>();
+    private readonly Dictionary<string, AnimationClipPlayable> m_PlayableDic = new Dictionary<string, AnimationClipPlayable>();
+    private static readonly Dictionary<int, UIPlayAnimatorAnimation> m_AnimatorAnimDic = new Dictionary<int, UIPlayAnimatorAnimation>();
 
     private void OnDisable()
     {
@@ -29,45 +29,45 @@ public class UIPlayAnimatorAnimation : MonoBehaviour
 
     private void Update()
     {
-        if (!IsPlaying)
+        if (!m_IsPlaying)
         {
             return;
         }
 
-        if (!Animator)
+        if (!m_Animator)
         {
             return;
         }
 
-        ElapsedTime += Time.deltaTime;
+        m_ElapsedTime += Time.deltaTime;
 
-        if (ElapsedTime >= Length)
+        if (m_ElapsedTime >= m_Length)
         {
-            CurrentPlayable.SetTime(Length);
+            m_CurrentPlayable.SetTime(m_Length);
             OnFinished();
         }
         else
         {
-            CurrentPlayable.SetTime(ElapsedTime);
+            m_CurrentPlayable.SetTime(m_ElapsedTime);
         }
     }
 
     //动画播放完成
     private void OnFinished()
     {
-        IsPlaying = false;
-        ElapsedTime = 0;
-        PlayableGraph.Stop();
-        Action tempHandle = FinishedCallback;
-        FinishedCallback = null;
+        m_IsPlaying = false;
+        m_ElapsedTime = 0;
+        m_PlayableGraph.Stop();
+        Action tempHandle = m_FinishedCallback;
+        m_FinishedCallback = null;
         tempHandle?.Invoke();
     }
 
     //播放动画
     public void Play(string animName, Action finishedCallback)
     {
-        AnimName = animName;
-        FinishedCallback = finishedCallback;
+        this.animName = animName;
+        m_FinishedCallback = finishedCallback;
 
         if (!gameObject.activeInHierarchy)
         {
@@ -75,35 +75,35 @@ public class UIPlayAnimatorAnimation : MonoBehaviour
             return;
         }
 
-        if (Animator == null)
+        if (m_Animator == null)
         {
-            Animator = gameObject.GetComponent<Animator>();
+            m_Animator = gameObject.GetComponent<Animator>();
         }
 
-        if (!Animator)
+        if (!m_Animator)
         {
             Debug.LogError($"UIPlayAnimatorAnimation.Play Error:[{gameObject.name}:不存在Animation组件]");
             return;
         }
 
-        if (!PlayableGraph.IsValid())
+        if (!m_PlayableGraph.IsValid())
         {
-            PlayableGraph = PlayableGraph.Create();
-            AnimationPlayableOutput = AnimationPlayableOutput.Create(PlayableGraph, "Animation", Animator);
+            m_PlayableGraph = PlayableGraph.Create();
+            m_AnimationPlayableOutput = AnimationPlayableOutput.Create(m_PlayableGraph, "Animation", m_Animator);
         }
 
         AnimationClipPlayable playable;
-        if (!PlayableDic.TryGetValue(animName, out playable))
+        if (!m_PlayableDic.TryGetValue(animName, out playable))
         {
             bool Exist = false;
 
-            for (int i = 0; i < Clips.Length; i++)
+            for (int i = 0; i < clips.Length; i++)
             {
-                AnimationClip tempClip = Clips[i];
+                AnimationClip tempClip = clips[i];
                 if (tempClip != null && tempClip.name == animName)
                 {
-                    CurrentPlayable = AnimationClipPlayable.Create(PlayableGraph, tempClip);
-                    PlayableDic[tempClip.name] = playable;
+                    m_CurrentPlayable = AnimationClipPlayable.Create(m_PlayableGraph, tempClip);
+                    m_PlayableDic[tempClip.name] = playable;
                     Exist = true;
                     break;
                 }
@@ -116,38 +116,38 @@ public class UIPlayAnimatorAnimation : MonoBehaviour
             }
         }
 
-        AnimationClip clip = CurrentPlayable.GetAnimationClip();
+        AnimationClip clip = m_CurrentPlayable.GetAnimationClip();
         if (!clip)
         {
             Debug.LogError($"UIPlayAnimatorAnimation.Play Error:[{gameObject.name}:不存在Clip:{animName}]");
             return;
         }
 
-        IsPlaying = true;
-        ElapsedTime = 0;
-        Length = clip.length;
-        AnimationPlayableOutput.SetSourcePlayable(playable);
-        PlayableGraph.Play();
-        playable.SetTime(ElapsedTime);
+        m_IsPlaying = true;
+        m_ElapsedTime = 0;
+        m_Length = clip.length;
+        m_AnimationPlayableOutput.SetSourcePlayable(playable);
+        m_PlayableGraph.Play();
+        playable.SetTime(m_ElapsedTime);
     }
 
     //停止播放动画
     public void Stop()
     {
-        ElapsedTime = 0;
-        IsPlaying = false;
-        PlayableGraph.Stop();
+        m_ElapsedTime = 0;
+        m_IsPlaying = false;
+        m_PlayableGraph.Stop();
     }
 
     private void OnDestroy()
     {
-        if (AnimatorAnimDic.ContainsKey(gameObject.GetHashCode()))
+        if (m_AnimatorAnimDic.ContainsKey(gameObject.GetHashCode()))
         {
-            AnimatorAnimDic.Remove(gameObject.GetHashCode());
+            m_AnimatorAnimDic.Remove(gameObject.GetHashCode());
         }
 
-        CurrentPlayable.Destroy();
-        PlayableGraph.Destroy();
+        m_CurrentPlayable.Destroy();
+        m_PlayableGraph.Destroy();
     }
 
     //播放动画
@@ -172,10 +172,10 @@ public class UIPlayAnimatorAnimation : MonoBehaviour
         }
 
         UIPlayAnimatorAnimation playAnimatorAnimation = null;
-        if (!AnimatorAnimDic.TryGetValue(gameObject.GetHashCode(), out playAnimatorAnimation))
+        if (!m_AnimatorAnimDic.TryGetValue(gameObject.GetHashCode(), out playAnimatorAnimation))
         {
             playAnimatorAnimation = gameObject.AddComponent<UIPlayAnimatorAnimation>();
-            AnimatorAnimDic.Add(gameObject.GetHashCode(), playAnimatorAnimation);
+            m_AnimatorAnimDic.Add(gameObject.GetHashCode(), playAnimatorAnimation);
         }
 
         if (!playAnimatorAnimation)

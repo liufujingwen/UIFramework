@@ -1,74 +1,70 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace UIFramework
 {
     public class CustomStack<T>
     {
-        List<T> list = new List<T>();
+       private readonly List<T> m_List = new List<T>();
 
         public int Count
         {
-            get { return list.Count; }
+            get { return m_List.Count; }
         }
 
         public T Peek()
         {
-            return list.Count > 0 ? list[list.Count - 1] : default(T);
+            return m_List.Count > 0 ? m_List[m_List.Count - 1] : default(T);
         }
 
         public void Push(T value)
         {
-            list.Add(value);
+            m_List.Add(value);
         }
 
         public T Pop()
         {
             T pop = default(T);
-            if (list.Count > 0)
+            if (m_List.Count > 0)
             {
-                pop = list[list.Count - 1];
-                list.RemoveAt(list.Count - 1);
+                pop = m_List[m_List.Count - 1];
+                m_List.RemoveAt(m_List.Count - 1);
             }
             return pop;
         }
 
         public void Clear()
         {
-            list.Clear();
+            m_List.Clear();
         }
 
         public List<T> GetList()
         {
-            return list;
+            return m_List;
         }
 
         public bool Contains(T value)
         {
-            return list.Contains(value);
+            return m_List.Contains(value);
         }
 
         public void Remove(T value)
         {
-            for (int i = list.Count - 1; i >= 0; i--)
+            for (int i = m_List.Count - 1; i >= 0; i--)
             {
-                T temp = list[i];
+                T temp = m_List[i];
                 if (temp.Equals(value))
-                    list.RemoveAt(i);
+                    m_List.RemoveAt(i);
             }
         }
 
         public void RemoveOne(T value)
         {
-            for (int i = list.Count - 1; i >= 0; i--)
+            for (int i = m_List.Count - 1; i >= 0; i--)
             {
-                T temp = list[i];
+                T temp = m_List[i];
                 if (temp.Equals(value))
                 {
-                    list.RemoveAt(i);
+                    m_List.RemoveAt(i);
                     break;
                 }
             }

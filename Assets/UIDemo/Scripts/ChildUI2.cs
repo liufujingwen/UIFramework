@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UIFramework;
+﻿using UIFramework;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -18,7 +13,7 @@ public class ChildUI2 : UIMonoProxy
 
     void OnClickExitBtn(PointerEventData eventData)
     {
-        UIManager.Instance.Pop();
+        UIManager.instance.Pop();
     }
 
     public override void OnStart(params object[] args)

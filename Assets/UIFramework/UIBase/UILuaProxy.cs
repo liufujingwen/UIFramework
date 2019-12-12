@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 using XLua;
 
@@ -7,21 +6,21 @@ namespace UIFramework
 {
     public class UILuaProxy : UIProxy
     {
-        public LuaTable UiLuaTable = null;
+        public LuaTable uiLuaTable { get; set; }
         ILuaUI luaUI = null;
-        static Func<string, UILuaProxy, ILuaUI> NewFunc = null;
+        private static Func<string, UILuaProxy, ILuaUI> ms_NewFunc = null;
 
         public override void SetUi(UI ui)
         {
-            this.UI = ui;
+            this.ui = ui;
 
-            if (NewFunc == null)
-                NewFunc = Main.Instance.LuaEnv.Global.GetInPath<Func<string, UILuaProxy, ILuaUI>>("LuaUIManager.New");
+            if (ms_NewFunc == null)
+                ms_NewFunc = Main.Instance.LuaEnv.Global.GetInPath<Func<string, UILuaProxy, ILuaUI>>("LuaUIManager.New");
 
-            if (NewFunc != null)
-                this.luaUI = NewFunc(this.UI.UiData.UiName, this);
+            if (ms_NewFunc != null)
+                this.luaUI = ms_NewFunc(this.ui.uiData.uiName, this);
 
-            this.Events = OnGetEvents();
+            this.events = OnGetEvents();
         }
 
         //UI设置GameObject
@@ -33,7 +32,7 @@ namespace UIFramework
 
         public void SetLuaTable(LuaTable uiLuaTable)
         {
-            this.UiLuaTable = uiLuaTable;
+            this.uiLuaTable = uiLuaTable;
         }
 
 
@@ -65,15 +64,15 @@ namespace UIFramework
         public override void OnDestroy()
         {
             this.luaUI?.OnDestroy();
-            this.UiLuaTable = null;
+            this.uiLuaTable = null;
             this.luaUI = null;
         }
 
         public Component FindComponent(string name, Type type)
         {
-            if (this.UI == null || !this.UI.Transform || type == null)
+            if (this.ui == null || !this.ui.transform || type == null)
                 return null;
-            GameObject tempGo = this.UI.Transform.FindGameObject(name);
+            GameObject tempGo = this.ui.transform.FindGameObject(name);
             if (!tempGo)
                 return null;
             return tempGo.GetComponent(type);

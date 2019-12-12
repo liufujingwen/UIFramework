@@ -1,27 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using static UGUIEventListener;
 
 namespace UIFramework
 {
     public abstract class UIProxy
     {
-        public UI UI = null;
-        public GameObject GameObject = null;
-        public Transform Transform = null;
-        public string[] Events = null;
+        public UI ui = null;
+        public GameObject gameObject { get; set; }
+        public Transform transform { get; set; }
+        public string[] events { get; set; }
 
         public abstract void SetUi(UI ui);
 
         public virtual void SetGameObejct()
         {
-            GameObject = UI.GameObject;
-            Transform = UI.Transform;
+            gameObject = ui.gameObject;
+            transform = ui.transform;
         }
 
         public abstract string[] OnGetEvents();
@@ -40,19 +34,19 @@ namespace UIFramework
 
         public GameObject FindGameObject(string name)
         {
-            if (UI == null || !UI.Transform)
+            if (ui == null || !ui.transform)
                 return null;
-            return UI.Transform.FindGameObject(name);
+            return ui.transform.FindGameObject(name);
         }
 
         public Transform FindTransform(string name)
         {
-            if (UI == null || !UI.Transform)
+            if (ui == null || !ui.transform)
                 return null;
-            return UI.Transform.FindTransform(name);
+            return ui.transform.FindTransform(name);
         }
 
-        public void RegisterListener(string name, VoidDelegate handle, bool clear = true)
+        public void RegisterListener(string name, UGUIEventListener.VoidDelegate handle, bool clear = true)
         {
             GameObject go = FindGameObject(name);
             if (go)
@@ -66,7 +60,7 @@ namespace UIFramework
             }
         }
 
-        public void RegisterListener(GameObject go, VoidDelegate handle, bool clear = true)
+        public void RegisterListener(GameObject go, UGUIEventListener.VoidDelegate handle, bool clear = true)
         {
             if (go)
             {
@@ -81,10 +75,10 @@ namespace UIFramework
 
         public void OpenChildUI(string childUIName, params object[] args)
         {
-            if (UI == null)
+            if (ui == null)
                 return;
 
-            GameUI gameUI = UI as GameUI;
+            GameUI gameUI = ui as GameUI;
             if (gameUI == null)
                 return;
 
@@ -94,10 +88,10 @@ namespace UIFramework
         //只打开一个子UI，已显示的UI会被关闭
         public void OpenOneChildUI(string childUiName, params object[] args)
         {
-            if (this.UI == null)
+            if (this.ui == null)
                 return;
 
-            GameUI gameUi = this.UI as GameUI;
+            GameUI gameUi = this.ui as GameUI;
             if (gameUi == null)
                 return;
 
@@ -106,7 +100,7 @@ namespace UIFramework
 
         public void CloseChildUI(string childUIName)
         {
-            GameUI gameUI = UI as GameUI;
+            GameUI gameUI = ui as GameUI;
             if (gameUI == null)
                 return;
 
@@ -115,23 +109,23 @@ namespace UIFramework
 
         public void PlayAnimation(string animName, Action finishedCallback = null)
         {
-            UI?.PlayAnimation(animName, finishedCallback);
+            ui?.PlayAnimation(animName, finishedCallback);
         }
 
         public void Close()
         {
-            if (this.UI == null)
+            if (this.ui == null)
                 return;
 
-            if (this.UI is GameUI)
+            if (this.ui is GameUI)
             {
-                UIManager.Instance.Close(this.UI.UiData.UiName);
+                UIManager.instance.Close(this.ui.uiData.uiName);
             }
-            else if (this.UI is ChildUI)
+            else if (this.ui is ChildUI)
             {
-                ChildUI childUi = this.UI as ChildUI;
-                if (childUi.ParentUI != null)
-                    childUi.ParentUI.CloseChildUI(this.UI.UiData.UiName);
+                ChildUI childUi = this.ui as ChildUI;
+                if (childUi.parentUI != null)
+                    childUi.parentUI.CloseChildUI(this.ui.uiData.uiName);
             }
         }
     }
